@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Privacy Sentiment Analysis{% endblock %}
+
+{% block styles %}
+<style>
+    .sentiment-positive { background-color: rgba(40, 167, 69, 0.2); }
+    .sentiment-neutral { background-color: rgba(108, 117, 125, 0.2); }
+    .sentiment-negative { background-color: rgba(220, 53, 69, 0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="pb-3 mb-4 border-bottom">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">Back to Home</a>
+        <h1 class="display-5 fw-bold text-center">Data Privacy Sentiment Analysis</h1>
+        <div style="width: 100px;"></div> <!-- Empty div for centering -->
+    </div>
+</header>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><h2>Video Selection</h2></div>
+            <div class="card-body">
+                <form id="videoSelectForm" action="{{ url_for('sentiment_analysis') }}" method="get">
+                    <div class="mb-3">
+                        <label for="videoSelect" class="form-label">Select a data privacy video:</label>
+                        <select class="form-select" id="videoSelect" name="video_id" onchange="this.form.submit()">
+                            <option value="">-- Select a video --</option>
+                            {% for video in videos %}
+                            <option value="{{ video.id }}" {% if video.id == selected_video_id %}selected{% endif %}>
+                                {{ video.title }} ({{ video.channel }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+                <div class="alert alert-info">
+                    Using {{ 'Google Cloud Natural Language API' if use_google_api else 'Local TextBlob Analysis' }} for sentiment analysis.
+                    <a href="{{ url_for('config') }}" class="alert-link">Change Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><h2>Sentiment Overview</h2></div>
+            <div class="card-body">
+                {% if sentiment_stats %}
+                <div class="progress mb-3" style="height: 30px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ sentiment_stats.positive_percent }}%">
+                        {{ sentiment_stats.positive_percent }}%
+                    </div>
+                    <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ sentiment_stats.neutral_percent }}%">
+                        {{ sentiment_stats.neutral_percent }}%
+                    </div>
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ sentiment_stats.negative_percent }}%">
+                        {{ sentiment_stats.negative_percent }}%
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-success">Positive: {{ sentiment_stats.positive_count }}</span>
+                    <span class="text-secondary">Neutral: {{ sentiment_stats.neutral_count }}</span>
+                    <span class="text-danger">Negative: {{ sentiment_stats.negative_count }}</span>
+                </div>
+                <p class="mt-2">Total comments analyzed: {{ sentiment_stats.total_comments }}</p>
+                {% else %}
+                <p>Select a video to see sentiment analysis.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if selected_video %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Selected Video</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <img src="{{ selected_video.thumbnail }}" class="img-fluid rounded" alt="{{ selected_video.title }}">
+                    </div>
+                    <div class="col-md-8">
+                        <h4>{{ selected_video.title }}</h4>
+                        <p>Channel: {{ selected_video.channel }}</p>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{{ selected_video.views }} views</span>
+                            <span>{{ selected_video.likes }} likes</span>
+                            <span>{{ selected_video.comments }} comments</span>
+                        </div>
+                        <p>{{ selected_video.description | truncate(200) }}</p>
+                        <a href="{{ selected_video.url }}" target="_blank" class="btn btn-primary">Watch on YouTube</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if comments %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Comment Sentiment Analysis</h3>
+                <select class="form-select" style="width: auto;" id="sentimentFilter" onchange="filterComments()">
+                    <option value="all">All Comments</option>
+                    <option value="positive">Positive</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="negative">Negative</option>
+                </select>
+            </div>
+            <div class="card-body">
+                {% if comments_limited %}
+                <div class="alert alert-info mb-3">
+                    Showing 50 comments out of {{ selected_video.comments }} total comments to optimize API usage and costs.
+                </div>
+                {% endif %}
+                
+                <div class="list-group">
+                    {% for comment in comments %}
+                    <div class="list-group-item sentiment-{{ comment.sentiment.category }}" data-sentiment="{{ comment.sentiment.category }}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ comment.author }}</h5>
+                            <small>{{ comment.published_at | format_date }}</small>
+                        </div>
+                        <p class="mb-1">{{ comment.text }}</p>
+                        <small>
+                            Sentiment: 
+                            <span class="badge {% if comment.sentiment.category == 'positive' %}bg-success{% elif comment.sentiment.category == 'negative' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ comment.sentiment.category | capitalize }} ({{ "%.2f"|format(comment.sentiment.score) }})
+                            </span>
+                            <span class="ms-2">Likes: {{ comment.likes }}</span>
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterComments() {
+        const filter = document.getElementById('sentimentFilter').value;
+        const comments = document.querySelectorAll('.list-group-item');
+        
+        comments.forEach(comment => {
+            if (filter === 'all' || comment.dataset.sentiment === filter) {
+                comment.style.display = 'block';
+            } else {
+                comment.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

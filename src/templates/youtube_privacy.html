@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}YouTube Videos on Data Privacy{% endblock %}
+
+{% block content %}
+<header class="pb-3 mb-4 border-bottom">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">Back to Home</a>
+        <h1 class="display-5 fw-bold text-center">Data Privacy on YouTube</h1>
+        <div style="width: 100px;"></div> <!-- Empty div for centering -->
+    </div>
+</header>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% else %}
+<div class="mb-4">
+    <h2>Analysis Overview</h2>
+    <div class="card">
+        <div class="card-body">
+            <p>Total videos analyzed: {{ videos|length }}</p>
+            <p>Average view count: {{ average_views }}</p>
+            <p>Average like count: {{ average_likes }}</p>
+            <p>Average comment count: {{ average_comments }}</p>
+        </div>
+    </div>
+</div>
+
+<h2>Video Details</h2>
+<div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for video in videos %}
+    <div class="col">
+        <div class="card h-100">
+            <img src="{{ video.thumbnail }}" class="card-img-top" alt="{{ video.title }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ video.title }}</h5>
+                <p class="card-text">Channel: {{ video.channel }}</p>
+                <div class="d-flex justify-content-between">
+                    <span>{{ video.views }} views</span>
+                    <span>{{ video.likes }} likes</span>
+                    <span>{{ video.comments }} comments</span>
+                </div>
+                <p class="card-text mt-2">
+                    <small class="text-muted">{{ video.description|truncate(100) }}</small>
+                </p>
+                <a href="{{ video.url }}" target="_blank" class="btn btn-primary">Watch Video</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

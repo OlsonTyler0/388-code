@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Data Analysis Dashboard{% endblock %}
+
+{% block content %}
+<header class="pb-3 mb-4 border-bottom">
+    <h1 class="display-5 fw-bold text-center">Data Analysis Dashboard</h1>
+</header>
+
+<div class="row justify-content-center mb-4">
+    <div class="col-md-8 text-center">
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a href="{{ url_for('sentiment_analysis') }}" class="btn btn-primary btn-lg px-4 gap-3">Sentiment Analysis</a>
+            <a href="{{ url_for('youtube_privacy') }}" class="btn btn-primary btn-lg px-4">YouTube Stats of Online Privacy</a>
+            <a href="{{ url_for('top20') }}" class="btn btn-primary btn-lg px-4">Top 20 Popular</a>
+            <a href="{{ url_for('config') }}" class="btn btn-warning btn-lg px-4">Settings</a>
+            <a href="{{ url_for('more') }}" class="btn btn-secondary btn-lg px-4">More</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

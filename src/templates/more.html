@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}More Options{% endblock %}
+
+{% block content %}
+<header class="pb-3 mb-4 border-bottom">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">Back to Home</a>
+        <h1 class="display-5 fw-bold text-center">More Options</h1>
+        <div style="width: 100px;"></div>
+    </div>
+</header>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h2>Explore Data from Google Cloud Storage</h2></div>
+            <div class="card-body">
+                <form action="{{ url_for('summarize_json') }}" method="get" id="gcsForm">
+                    <div class="mb-3">
+                        <label for="bucket_name" class="form-label">Bucket Name</label>
+                        <input type="text" class="form-control" id="bucket_name" name="bucket_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="source_blob_name" class="form-label">File Name</label>
+                        <input type="text" class="form-control" id="source_blob_name" name="source_blob_name" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Get Data Summary</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h2>About This Project</h2></div>
+            <div class="card-body">
+                <p>This data analysis dashboard provides insights into YouTube data related to data privacy topics.</p>
+                <p>The project aims to track data privacy sentiment and trends on YouTube to help understand public awareness and concerns.</p>
+                <p>Data is collected using the YouTube API and stored in Google Cloud Storage for analysis.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
