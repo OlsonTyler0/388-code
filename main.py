@@ -1,22 +1,38 @@
 from flask import Flask, request, render_template, redirect, url_for, session
 import logging
 import os
+from datetime import datetime
 from src.youtube_stats import YouTubeStats
 from src.sentiment_analyzer import SentimentAnalyzer, LocalSentimentAnalyzer
 from src.data_storage import DataStorage
-from datetime import datetime
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Update the Flask app initialization to use the correct template folder
+app = Flask(__name__, template_folder='src/templates')
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_secret_key_here')  # Required for session
+
+# Add datetime to template context
+@app.context_processor
+def inject_now():
+    return {'now': datetime.now()}
+
+@app.template_filter('format_date')
+def format_date(date_string):
+    try:
+        date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+        return date.strftime("%b %d, %Y")
+    except Exception as e:
+        logger.error(f"Error formatting date: {str(e)}")
+        return date_string
+
 
 @app.route('/', methods=['GET'])
 def homepage():
     # Render the homepage template
-    return render_template('homepage.html')
+    return render_template('homepage.html')  # Updated path
 
 @app.route('/config', methods=['GET', 'POST'])
 def config():
@@ -124,14 +140,6 @@ def sentiment_analysis():
                 
                 comments = comments_data
         
-        @app.template_filter('format_date')
-        def format_date(date_string):
-            try:
-                date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
-                return date.strftime("%b %d, %Y")
-            except Exception as e:
-                return date_string
-        
         return render_template('sentiment.html', 
                                videos=videos, 
                                comments=comments, 
@@ -153,6 +161,42 @@ def sentiment_analysis():
                                sentiment_stats=None,
                                comments_limited=False,
                                use_google_api=session.get('use_google_api', True))
+    
+
+@app.route('/summarize_json', methods=['GET'])
+def summarize_json():
+    try:
+        bucket_name = request.args.get('bucket_name')
+        source_blob_name = request.args.get('source_blob_name')
+        
+        if not bucket_name or not source_blob_name:
+            return render_template('json_summary.html', 
+                                  error="Bucket name and file name are required",
+                                  summary=None,
+                                  filename=None)
+        
+        storage = DataStorage(bucket_name)
+        data = storage.load_data(source_blob_name)
+        
+        # Basic summary logic
+        summary = {
+            "file_name": source_blob_name,
+            "data_type": type(data).__name__,
+            "item_count": len(data) if isinstance(data, list) else "Not a list",
+            "keys": list(data[0].keys()) if isinstance(data, list) and data else "No keys found or empty list",
+            "sample": data[0] if isinstance(data, list) and data else "No sample available"
+        }
+        
+        return render_template('json_summary.html', 
+                              error=None,
+                              summary=summary,
+                              filename=source_blob_name)
+    except Exception as e:
+        logger.error(f"Error in summarize_json route: {str(e)}")
+        return render_template('json_summary.html', 
+                              error=f"An error occurred: {str(e)}", 
+                              summary=None,
+                              filename=None)
 
 @app.route('/youtube-privacy', methods=['GET'])
 def youtube_privacy():
@@ -193,6 +237,13 @@ def top20():
 @app.route('/more', methods=['GET'])
 def more():
     return render_template('more.html')
+
+def format_date(date_string):
+    try:
+        date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+        return date.strftime("%b %d, %Y")
+    except Exception as e:
+        return date_string
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
