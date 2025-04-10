@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Tag Analysis</h2>
+    
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% else %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Top 20 Tags (from {{ total_videos }} videos)</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>Frequency</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tag, count in tags %}
+                        <tr>
+                            <td>{{ tag }}</td>
+                            <td>{{ count }}</td>
+                            <td>{{ "%.1f"|format(count/total_videos*100) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

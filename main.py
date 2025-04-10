@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, session, flash
+from flask import Flask, request, render_template, redirect, url_for, session, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -89,11 +89,10 @@ def homepage():
 
 @app.route('/config', methods=['GET', 'POST'])
 @login_required
-@admin_required  # Add this decorator to restrict access to admins
+@admin_required
 def config():
     if request.method == 'POST':
         if 'new_user' in request.form:
-            # Handle new user creation
             username = request.form.get('new_username')
             password = request.form.get('new_password')
             role = request.form.get('role', 'user')
@@ -110,17 +109,22 @@ def config():
                 db.session.commit()
                 flash('User created successfully')
         
-        # Keep existing config functionality
+        if 'update_bucket' in request.form:
+            new_bucket_name = request.form.get('bucket_name')
+            if new_bucket_name:
+                session['storage_bucket'] = new_bucket_name
+                flash('Storage bucket updated successfully')
         use_google_api = 'use_google_api' in request.form
         session['use_google_api'] = use_google_api
         
         return redirect(url_for('config'))
         
-    # Get all users for display
     users = User.query.all()
     use_google_api = session.get('use_google_api', True)
+    current_bucket = session.get('storage_bucket', 'your-bucket-name')
     return render_template('config.html', 
                          use_google_api=use_google_api,
+                         current_bucket=current_bucket,
                          users=users)
 
 @app.route('/sentiment', methods=['GET'])
@@ -232,6 +236,7 @@ def sentiment_analysis():
                                sentiment_stats=None,
                                comments_limited=False,
                                use_google_api=session.get('use_google_api', True))
+
 @app.route('/summarize_json', methods=['GET'])
 @login_required
 def summarize_json():
@@ -285,7 +290,6 @@ def youtube_privacy():
         avg_likes = format(total_likes / len(videos), ',.0f') if videos else 0
         avg_comments = format(total_comments / len(videos), ',.0f') if videos else 0
 
-        # Store current videos in session for storage management
         session['current_videos'] = videos
 
         return render_template('youtube_privacy.html', 
@@ -302,11 +306,12 @@ def youtube_privacy():
 @login_required
 def storage_manager():
     try:
-        data_storage = DataStorage('your-bucket-name')  # Replace with your bucket name
+        data_storage = DataStorage(session.get('storage_bucket', 'your-bucket-name'))
+        bucket_name = session.get('storage_bucket', 'itc-388-youtube-r6')
+        data_storage = DataStorage(bucket_name)
         
         if request.method == 'POST':
             if 'upload' in request.form:
-                # Upload current videos data
                 current_videos = session.get('current_videos')
                 if current_videos:
                     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -322,7 +327,6 @@ def storage_manager():
                     data = data_storage.load_data(blob_name)
                     return jsonify(data)
         
-        # List all available files
         files = data_storage.list_blobs()
         return render_template('storage_manager.html', files=files)
 
@@ -331,11 +335,9 @@ def storage_manager():
         flash(f"An error occurred: {str(e)}", 'error')
         return render_template('storage_manager.html', files=[])
 
-
 @app.route('/legacy_search')
-@login_required  # Add this if you want to restrict access
+@login_required
 def legacy_search():
-    # This is your existing top20 function code
     try:
         youtube_stats = YouTubeStats()
         videos = youtube_stats.search_privacy_videos(max_results=20)
@@ -350,12 +352,11 @@ def legacy_search():
         avg_views = format(total_views / len(videos), ',.0f') if videos else 0
         avg_likes = format(total_likes / len(videos), ',.0f') if videos else 0
         avg_comments = format(total_comments / len(videos), ',.0f') if videos else 0
-
-        return render_template('legacy_search.html', 
-                             videos=videos, 
-                             error=None, 
-                             average_views=avg_views, 
-                             average_likes=avg_likes, 
+        return render_template('legacy_search.html',
+                             videos=videos,
+                             error=None,
+                             average_views=avg_views,
+                             average_likes=avg_likes,
                              average_comments=avg_comments)
     except Exception as e:
         logger.error(f"Error in legacy search route: {str(e)}")
@@ -365,6 +366,39 @@ def legacy_search():
 @login_required
 def more():
     return render_template('more.html')
+
+@app.route('/tag_analysis')
+def tag_analysis():
+    try:
+        youtube_stats = YouTubeStats()
+        videos = youtube_stats.search_privacy_videos(max_results=20)
+        
+        if isinstance(videos, dict) and 'error' in videos:
+            return render_template('tag_analysis.html', error=videos['error'])
+            
+        # Create a tag frequency dictionary
+        tag_frequency = {}
+        for video in videos:
+            tags = video.get('tags', [])
+            for tag in tags:
+                tag = tag.lower().strip()  # Normalize tags
+                tag_frequency[tag] = tag_frequency.get(tag, 0) + 1
+                
+        # Sort tags by frequency
+        sorted_tags = sorted(tag_frequency.items(), key=lambda x: x[1], reverse=True)
+        
+        # Get top 20 tags
+        top_tags = sorted_tags[:20]
+        
+        return render_template('tag_analysis.html', 
+                             tags=top_tags,
+                             total_videos=len(videos),
+                             error=None)
+    except Exception as e:
+        logger.error(f"Error in tag analysis route: {str(e)}")
+        return render_template('tag_analysis.html', 
+                             error=f"An error occurred: {str(e)}",
+                             tags=[])
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))

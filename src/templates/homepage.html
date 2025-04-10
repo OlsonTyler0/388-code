@@ -13,6 +13,9 @@
             <a href="{{ url_for('youtube_privacy') }}" class="btn btn-primary btn-lg px-4 gap-3">
                 Privacy Analysis
             </a>
+            <a href="{{ url_for('tag_analysis') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                Tag Analysis
+            </a>
             <a href="{{ url_for('storage_manager') }}" class="btn btn-outline-secondary btn-lg px-4">
                 Storage Manager
             </a>
@@ -21,7 +24,7 @@
 </div>
 
 <div class="row g-4 py-5">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">Privacy Content Analysis</h5>
@@ -37,7 +40,23 @@
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Tag Analysis</h5>
+                <p class="card-text">
+                    Analyze trending tags across privacy-related content. Identify popular topics
+                    and discover content patterns through tag frequency analysis.
+                </p>
+                <ul class="list-unstyled mt-3">
+                    <li><i class="bi bi-tags-fill text-success"></i> Most popular tags</li>
+                    <li><i class="bi bi-graph-up text-success"></i> Tag frequency analysis</li>
+                    <li><i class="bi bi-diagram-3 text-success"></i> Topic correlation</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">Data Storage & Analysis</h5>
