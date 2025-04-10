@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Storage Manager</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Upload Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Upload Current Analysis
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <input type="hidden" name="upload" value="1">
+                <button type="submit" class="btn btn-primary">
+                    Upload Current Privacy Analysis
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Download Section -->
+    <div class="card">
+        <div class="card-header">
+            Available Files
+        </div>
+        <div class="card-body">
+            {% if files %}
+                <div class="list-group">
+                    {% for file in files %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ file }}
+                        <form method="POST" class="d-inline">
+                            <input type="hidden" name="download" value="1">
+                            <input type="hidden" name="blob_name" value="{{ file }}">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                Download
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No files available.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

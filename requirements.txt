@@ -4,3 +4,5 @@ google-cloud-language
 google-api-python-client
 textblob
 python-dotenv
+flask-login
+flask-sqlalchemy

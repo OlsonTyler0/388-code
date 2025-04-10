@@ -1,8 +1,9 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}Application Configuration{% endblock %}
 
 {% block content %}
+<div class="container">
 <header class="pb-3 mb-4 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
         <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">Back to Home</a>
@@ -10,6 +11,14 @@
         <div style="width: 100px;"></div>
     </div>
 </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
 <div class="row mb-4">
     <div class="col-md-8 mx-auto">
@@ -19,10 +28,8 @@
                 <form method="post">
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" id="use_google_api" name="use_google_api" {% if use_google_api %}checked{% endif %}>
-                        <label class="form-check-label" for="use_google_api">
-                            Use Google Cloud Natural Language API
-                        </label>
-                    </div>
+                            <label class="form-check-label" for="use_google_api">Use Google Cloud Natural Language API</label>
+                        </div>
                     <div class="alert alert-info">
                         <h5>Cost Information:</h5>
                         <p>Google Cloud Natural Language API costs approximately $1 per 1,000 comments analyzed.</p>
@@ -34,4 +41,47 @@
         </div>
     </div>
 </div>
+
+    {% if current_user.role == 'admin' %}
+    <h3 class="mt-4">User Management</h3>
+    <form method="POST" class="mb-4">
+        <input type="hidden" name="new_user" value="1">
+        <div class="mb-3">
+            <label for="new_username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="new_username" name="new_username" required>
+        </div>
+        <div class="mb-3">
+            <label for="new_password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="new_password" name="new_password" required>
+        </div>
+        <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <select class="form-control" id="role" name="role">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-success">Add New User</button>
+    </form>
+
+    <h3>Existing Users</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.role }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
 {% endblock %}
+

@@ -16,7 +16,6 @@ class DataStorage:
         try:
             self.storage_client = storage.Client()
             self.bucket_name = bucket_name
-            # Check if bucket exists, create it if it doesn't
             self._ensure_bucket_exists()
         except Exception as e:
             logger.error(f"Error initializing DataStorage: {str(e)}")
@@ -47,10 +46,8 @@ class DataStorage:
             blob_name = f"videos_data_{timestamp}.json"
             blob = bucket.blob(blob_name)
             
-            # Convert to JSON string
             data_json = json.dumps(videos_data, indent=2)
             
-            # Upload to GCS
             blob.upload_from_string(data_json, content_type="application/json")
             
             logger.info(f"Saved videos data to {blob_name}")
@@ -76,10 +73,8 @@ class DataStorage:
             blob_name = f"comments_{video_id}_{timestamp}.json"
             blob = bucket.blob(blob_name)
             
-            # Convert to JSON string
             data_json = json.dumps(comments_data, indent=2)
             
-            # Upload to GCS
             blob.upload_from_string(data_json, content_type="application/json")
             
             logger.info(f"Saved comments data to {blob_name}")
@@ -102,10 +97,8 @@ class DataStorage:
             bucket = self.storage_client.bucket(self.bucket_name)
             blob = bucket.blob(blob_name)
             
-            # Download as string
             content = blob.download_as_text()
             
-            # Parse JSON
             data = json.loads(content)
             
             logger.info(f"Loaded data from {blob_name}")
@@ -116,7 +109,7 @@ class DataStorage:
             
     def list_blobs(self, prefix=None):
         """
-        List blobs in the bucket with optional prefix
+        List all blobs in the bucket
         
         Args:
             prefix: Optional prefix to filter blobs
