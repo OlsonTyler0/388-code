@@ -306,7 +306,6 @@ def youtube_privacy():
 @login_required
 def storage_manager():
     try:
-        data_storage = DataStorage(session.get('storage_bucket', 'your-bucket-name'))
         bucket_name = session.get('storage_bucket', 'itc-388-youtube-r6')
         data_storage = DataStorage(bucket_name)
         
