@@ -1,1 +1,4 @@
 ./.venv
+./src/__pycache__
+./src/routes/__pycache__
+./src/utils/__pycache__
