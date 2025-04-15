@@ -367,6 +367,7 @@ def more():
     return render_template('more.html')
 
 @app.route('/tag_analysis')
+@login_required
 def tag_analysis():
     try:
         youtube_stats = YouTubeStats()

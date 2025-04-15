@@ -13,6 +13,9 @@
             <a href="{{ url_for('youtube_privacy') }}" class="btn btn-primary btn-lg px-4 gap-3">
                 Privacy Analysis
             </a>
+            <a href="{{ url_for('sentiment_analysis') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                Sentiment Analysis
+            </a>
             <a href="{{ url_for('tag_analysis') }}" class="btn btn-primary btn-lg px-4 gap-3">
                 Tag Analysis
             </a>
@@ -24,7 +27,7 @@
 </div>
 
 <div class="row g-4 py-5">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">Privacy Content Analysis</h5>
@@ -40,7 +43,23 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Sentiment Analysis</h5>
+                <p class="card-text">
+                    Analyze the sentiment of comments on privacy-related videos.
+                    Understand public opinion and engagement through comment analysis.
+                </p>
+                <ul class="list-unstyled mt-3">
+                    <li><i class="bi bi-emoji-smile text-success"></i> Comment sentiment tracking</li>
+                    <li><i class="bi bi-graph-up text-success"></i> Sentiment trends</li>
+                    <li><i class="bi bi-chat-dots text-success"></i> Comment analysis</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">Tag Analysis</h5>
@@ -56,7 +75,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">Data Storage & Analysis</h5>
@@ -80,9 +99,10 @@
         <div class="card bg-light">
             <div class="card-body">
                 <h5 class="card-title">Admin Tools</h5>
-                <p class="card-text">Access administrative features and legacy tools.</p>
+                <p class="card-text">Access administrative features and configuration settings.</p>
                 <a href="{{ url_for('config') }}" class="btn btn-outline-primary">Configuration</a>
-                <a href="{{ url_for('legacy_search') }}" class="btn btn-outline-secondary">Legacy Search</a>
+                <a href="{{ url_for('summarize_json') }}" class="btn btn-outline-secondary">JSON Summary</a>
+                <a href="{{ url_for('more') }}" class="btn btn-outline-info">More Options</a>
             </div>
         </div>
     </div>
@@ -93,4 +113,3 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 {% endblock %}
 {% endblock %}
-

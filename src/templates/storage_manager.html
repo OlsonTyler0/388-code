@@ -12,19 +12,28 @@
         {% endif %}
     {% endwith %}
 
+    {% if has_current_data %}
+        <div class="alert alert-info">
+            Data is ready to be uploaded
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            No data collected yet. Click "Collect New Data" to begin.
+        </div>
+    {% endif %}
+
     <!-- Upload Section -->
-    <div class="card mb-4">
-        <div class="card-header">
-            Upload Current Analysis
-        </div>
-        <div class="card-body">
-            <form method="POST">
-                <input type="hidden" name="upload" value="1">
-                <button type="submit" class="btn btn-primary">
-                    Upload Current Privacy Analysis
-                </button>
-            </form>
-        </div>
+    <div class="actions">
+        <form method="POST">
+            <button type="submit" name="collect_data" class="btn btn-primary">
+                Collect New Data
+            </button>
+            
+            <button type="submit" name="upload" class="btn btn-success" 
+                    {% if not has_current_data %}disabled{% endif %}>
+                Upload Current Data
+            </button>
+        </form>
     </div>
 
     <!-- Download Section -->
