@@ -121,7 +121,7 @@ def config():
         
     users = User.query.all()
     use_google_api = session.get('use_google_api', True)
-    current_bucket = session.get('storage_bucket', 'your-bucket-name')
+    current_bucket = session.get('storage_bucket', 'itc-388-youtube-r6')
     return render_template('config.html', 
                          use_google_api=use_google_api,
                          current_bucket=current_bucket,
