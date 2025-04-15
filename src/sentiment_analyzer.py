@@ -1,3 +1,10 @@
+# ╔═══════════════════════════════════════════════════════════╗
+#   sentiment_analyzer.py
+#       This is the sentiment handler. It will handle any query
+#       to the natural language APi to get back good or bad 
+#       scores
+# ╚═══════════════════════════════════════════════════════════╝
+
 import logging
 
 logger = logging.getLogger(__name__)

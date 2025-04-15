@@ -1,3 +1,9 @@
+# ╔═══════════════════════════════════════════════════════════╗
+#   youtube_stats.py
+#       This file contains the code for retrieving data from
+#       The youtube api for later use throughout the website
+# ╚═══════════════════════════════════════════════════════════╝
+
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import os

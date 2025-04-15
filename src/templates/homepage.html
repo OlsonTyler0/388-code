@@ -3,113 +3,152 @@
 {% block title %}Welcome to Data Analysis Dashboard{% endblock %}
 
 {% block content %}
-<div class="px-4 py-5 my-5 text-center">
-    <h1 class="display-4 fw-bold">YouTube Privacy Analysis Dashboard</h1>
-    <div class="col-lg-6 mx-auto">
-        <p class="lead mb-4">
-            Analyze privacy-related content on YouTube, track engagement metrics, and store historical data for trend analysis.
-        </p>
-        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-            <a href="{{ url_for('youtube_privacy') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                Privacy Analysis
-            </a>
-            <a href="{{ url_for('sentiment_analysis') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                Sentiment Analysis
-            </a>
-            <a href="{{ url_for('tag_analysis') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                Tag Analysis
-            </a>
-            <a href="{{ url_for('storage_manager') }}" class="btn btn-outline-secondary btn-lg px-4">
-                Storage Manager
-            </a>
+<!-- Hero Section -->
+<div class="hero-section bg-gradient-primary text-white px-4 py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold mb-3">YouTube Privacy Analysis Dashboard</h1>
+                <p class="lead mb-4 opacity-75">
+                    Analyze privacy-related content on YouTube, track engagement metrics, and discover insights through comprehensive data analysis.
+                </p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{{ url_for('youtube.youtube_privacy') }}" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-play-circle me-2"></i>Get Started
+                    </a>
+                    <a href="#features" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4 py-5">
+<!-- Features Section -->
+<div class="container" id="features">
+    <div class="row g-4 py-5">
     <div class="col-md-3">
-        <div class="card h-100">
+            <div class="card h-100 shadow-sm hover-card">
             <div class="card-body">
-                <h5 class="card-title">Privacy Content Analysis</h5>
-                <p class="card-text">
-                    Discover and analyze the most impactful privacy-related content on YouTube.
-                    Track views, engagement, and trending topics in the privacy space.
+                    <div class="icon-square text-primary mb-3">
+                        <i class="bi bi-shield-check fs-1"></i>
+            </div>
+                    <h5 class="card-title">Privacy Content Analysis</h5>
+                    <p class="card-text text-muted">
+                        Track and analyze privacy-focused content performance on YouTube with real-time metrics.
                 </p>
-                <ul class="list-unstyled mt-3">
-                    <li><i class="bi bi-check-circle-fill text-success"></i> Real-time privacy video metrics</li>
-                    <li><i class="bi bi-check-circle-fill text-success"></i> Engagement analysis</li>
-                    <li><i class="bi bi-check-circle-fill text-success"></i> Trending privacy topics</li>
-                </ul>
+                    <a href="{{ url_for('youtube.youtube_privacy') }}" class="btn btn-primary mt-3">
+                        Analyze Content
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
     <div class="col-md-3">
-        <div class="card h-100">
+            <div class="card h-100 shadow-sm hover-card">
             <div class="card-body">
-                <h5 class="card-title">Sentiment Analysis</h5>
-                <p class="card-text">
-                    Analyze the sentiment of comments on privacy-related videos.
-                    Understand public opinion and engagement through comment analysis.
+                    <div class="icon-square text-success mb-3">
+                        <i class="bi bi-emoji-smile fs-1"></i>
+            </div>
+                    <h5 class="card-title">Sentiment Analysis</h5>
+                    <p class="card-text text-muted">
+                        Understand public opinion through advanced comment sentiment analysis.
                 </p>
-                <ul class="list-unstyled mt-3">
-                    <li><i class="bi bi-emoji-smile text-success"></i> Comment sentiment tracking</li>
-                    <li><i class="bi bi-graph-up text-success"></i> Sentiment trends</li>
-                    <li><i class="bi bi-chat-dots text-success"></i> Comment analysis</li>
-                </ul>
+                    <a href="{{ url_for('sentiment.sentiment_analysis') }}" class="btn btn-success mt-3">
+                        Analyze Sentiment
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card h-100">
+
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm hover-card">
             <div class="card-body">
-                <h5 class="card-title">Tag Analysis</h5>
-                <p class="card-text">
-                    Analyze trending tags across privacy-related content. Identify popular topics
-                    and discover content patterns through tag frequency analysis.
-                </p>
-                <ul class="list-unstyled mt-3">
-                    <li><i class="bi bi-tags-fill text-success"></i> Most popular tags</li>
-                    <li><i class="bi bi-graph-up text-success"></i> Tag frequency analysis</li>
-                    <li><i class="bi bi-diagram-3 text-success"></i> Topic correlation</li>
-                </ul>
+                    <div class="icon-square text-info mb-3">
+                        <i class="bi bi-tags fs-1"></i>
             </div>
+                    <h5 class="card-title">Tag Analysis</h5>
+                    <p class="card-text text-muted">
+                        Discover trending topics and patterns through comprehensive tag analysis.
+                    </p>
+                    <a href="{{ url_for('analysis.tag_analysis') }}" class="btn btn-info mt-3">
+                        Analyze Tags
+                    </a>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Data Storage & Analysis</h5>
-                <p class="card-text">
-                    Store and manage your analysis results in the cloud. Track changes over time
-                    and download historical data for comprehensive trend analysis.
-                </p>
-                <ul class="list-unstyled mt-3">
-                    <li><i class="bi bi-cloud-upload text-primary"></i> Cloud storage integration</li>
-                    <li><i class="bi bi-file-earmark-text text-primary"></i> Historical data access</li>
-                    <li><i class="bi bi-graph-up text-primary"></i> Trend tracking</li>
-                </ul>
+</div>
+
+        <div class="col-md-3">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body">
+                    <div class="icon-square text-secondary mb-3">
+                        <i class="bi bi-cloud-upload fs-1"></i>
+                    </div>
+                    <h5 class="card-title">Data Storage</h5>
+                    <p class="card-text text-muted">
+                        Securely store and manage your analysis results in the cloud.
+                    </p>
+                    <a href="{{ url_for('storage.storage_manager') }}" class="btn btn-secondary mt-3">
+                        Manage Storage
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 {% if current_user.role == 'admin' %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h5 class="card-title">Admin Tools</h5>
-                <p class="card-text">Access administrative features and configuration settings.</p>
-                <a href="{{ url_for('config') }}" class="btn btn-outline-primary">Configuration</a>
-                <a href="{{ url_for('summarize_json') }}" class="btn btn-outline-secondary">JSON Summary</a>
-                <a href="{{ url_for('more') }}" class="btn btn-outline-info">More Options</a>
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-gear-fill me-2"></i>Admin Tools</h5>
+                    <p class="card-text text-muted">Access administrative features and configuration settings.</p>
+                    <div class="btn-group">
+                        <a href="{{ url_for('admin.config') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-wrench me-2"></i>Configuration
+                        </a>
+                        <a href="{{ url_for('storage.summarize_json') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-file-text me-2"></i>JSON Summary
+                        </a>
+                        <a href="{{ url_for('main.more') }}" class="btn btn-outline-info">
+                            <i class="bi bi-three-dots me-2"></i>More Options
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endif %}
 
-{% block styles %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
 {% endblock %}
+
+{% block styles %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+
+<!-- Custom CSS -->
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+
+    .hover-card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .icon-square {
+        text-align: center;
+    }
+
+    .btn-group {
+        gap: 10px;
+    }
+</style>
 {% endblock %}

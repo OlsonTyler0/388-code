@@ -6,13 +6,13 @@
 <div class="container">
 <header class="pb-3 mb-4 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
-        <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">Back to Home</a>
+        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">Back to Home</a>
         <h1 class="display-5 fw-bold text-center">Data Privacy on YouTube</h1>
         <div style="width: 100px;"></div> <!-- Empty div for centering -->
     </div>
 </header>
 
-    <a href="{{ url_for('storage_manager') }}" class="btn btn-primary mb-3">
+    <a href="{{ url_for('storage.storage_manager') }}" class="btn btn-primary mb-3">
         Manage Storage
     </a>
 

@@ -2,6 +2,17 @@
 
 This Flask application provides functionality for YouTube privacy analysis and JSON data management using Google Cloud Services.
 
+## The layout of this code
+
+- src/routes
+    Contains the routes for all the different parts of the website
+- src/templates
+    Contains all the templates aka html files
+- src/utils
+    Contains the utilities for the system.
+
+
+
 ## Setup
 
 1. Create a virtual environment and activate it:

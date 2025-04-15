@@ -1,3 +1,9 @@
+# ╔═══════════════════════════════════════════════════════════╗
+#   data_storage.py
+#       Handles the data storage for the website
+# ╚═══════════════════════════════════════════════════════════╝
+
+
 from google.cloud import storage
 import json
 from datetime import datetime
