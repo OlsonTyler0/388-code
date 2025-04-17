@@ -49,7 +49,7 @@ def config():
         use_google_api = 'use_google_api' in request.form
         session['use_google_api'] = use_google_api
 
-        return redirect(url_for('config'))
+        return redirect(url_for('admin.config'))
         
     users = User.query.all()
     use_google_api = session.get('use_google_api', True)

@@ -21,9 +21,13 @@ def storage_manager():
                 if current_videos:
                     date_str = datetime.now().strftime("%Y-%m-%d")
                     filename = f"{date_str}-privacy-analysis.json"
-                    # Pass the filename to save_videos_data
-                    data_storage.save_videos_data(current_videos, filename)  
-                    flash('Data successfully uploaded to storage!', 'success')
+                    saved_filename = data_storage.save_videos_data(current_videos, filename)
+                    flash(f'Data successfully uploaded as {saved_filename}!', 'success')
+                    # Force refresh the file list
+                    files = data_storage.list_blobs()
+                    return render_template('storage_manager.html', 
+                                        files=files,
+                                        latest_upload=saved_filename)
                 else:
                     flash('No current video data to upload', 'error')
             

@@ -12,53 +12,34 @@
         {% endif %}
     {% endwith %}
 
-    {% if has_current_data %}
-        <div class="alert alert-info">
-            Data is ready to be uploaded
-        </div>
-    {% else %}
-        <div class="alert alert-warning">
-            No data collected yet. Click "Collect New Data" to begin.
-        </div>
-    {% endif %}
-
     <!-- Upload Section -->
-    <div class="actions">
-        <form method="POST">
-            <button type="submit" name="collect_data" class="btn btn-primary">
-                Collect New Data
-            </button>
-            
-            <button type="submit" name="upload" class="btn btn-success" 
-                    {% if not has_current_data %}disabled{% endif %}>
-                Upload Current Data
-            </button>
-        </form>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Upload Current Data</h5>
+            <form method="POST">
+                <button type="submit" name="upload" class="btn btn-primary">Upload Current Data</button>
+            </form>
+        </div>
     </div>
 
-    <!-- Download Section -->
+    <!-- Files List -->
     <div class="card">
-        <div class="card-header">
-            Available Files
-        </div>
         <div class="card-body">
+            <h5 class="card-title">Stored Files</h5>
             {% if files %}
                 <div class="list-group">
-                    {% for file in files %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                {% for file in files %}
+                    <div class="list-group-item {% if latest_upload and latest_upload == file %}list-group-item-success{% endif %}">
                         {{ file }}
-                        <form method="POST" class="d-inline">
-                            <input type="hidden" name="download" value="1">
+                        <form method="POST" class="d-inline float-right">
                             <input type="hidden" name="blob_name" value="{{ file }}">
-                            <button type="submit" class="btn btn-sm btn-success">
-                                Download
-                            </button>
+                            <button type="submit" name="download" class="btn btn-sm btn-info">Download</button>
                         </form>
                     </div>
-                    {% endfor %}
+                {% endfor %}
                 </div>
             {% else %}
-                <p>No files available.</p>
+                <p>No files found in storage.</p>
             {% endif %}
         </div>
     </div>

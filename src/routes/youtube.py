@@ -25,6 +25,7 @@ def youtube_privacy():
         avg_comments = format(total_comments / len(videos), ',.0f') if videos else 0
 
         session['current_videos'] = videos
+        session['last_search_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         return render_template('youtube_privacy.html', 
                              videos=videos, 

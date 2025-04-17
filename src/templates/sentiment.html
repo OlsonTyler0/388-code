@@ -45,7 +45,7 @@
                 </form>
                 <div class="alert alert-info">
                     Using {{ 'Google Cloud Natural Language API' if use_google_api else 'Local TextBlob Analysis' }} for sentiment analysis.
-                    <a href="{{ url_for('config') }}" class="alert-link">Change Settings</a>
+                    <a href="{{ url_for('admin.config') }}" class="alert-link">Change Settings</a>
                 </div>
             </div>
         </div>
