@@ -5,7 +5,7 @@
 {% block content %}
 <header class="pb-3 mb-4 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
-        <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">Back to Home</a>
+        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">Back to Home</a>
         <h1 class="display-5 fw-bold text-center">More Options</h1>
         <div style="width: 100px;"></div>
     </div>
@@ -16,7 +16,7 @@
         <div class="card">
             <div class="card-header"><h2>Explore Data from Google Cloud Storage</h2></div>
             <div class="card-body">
-                <form action="{{ url_for('summarize_json') }}" method="get" id="gcsForm">
+                <form action="{{ url_for('storage.summarize_json') }}" method="get" id="gcsForm">
                     <div class="mb-3">
                         <label for="bucket_name" class="form-label">Bucket Name</label>
                         <input type="text" class="form-control" id="bucket_name" name="bucket_name" required>

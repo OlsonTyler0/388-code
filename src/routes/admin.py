@@ -1,7 +1,7 @@
 # ╔═══════════════════════════════════════════════════════════╗
-# admin routes
-#   This file routes all traffic from the following routes:
-#   - /config
+#   admin routes
+#       This file routes all traffic from the following routes:
+#       - /config
 # ╚═══════════════════════════════════════════════════════════╝
 
 from flask import Blueprint, request, render_template, redirect, url_for, session, flash

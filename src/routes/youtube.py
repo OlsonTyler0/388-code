@@ -1,5 +1,4 @@
-# src/routes/youtube.py
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, session
 from flask_login import login_required
 from ..youtube_stats import YouTubeStats
 import logging

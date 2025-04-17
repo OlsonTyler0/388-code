@@ -13,7 +13,7 @@
 {% block content %}
 <header class="pb-3 mb-4 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
-        <a href="{{ url_for('homepage') }}" class="btn btn-outline-primary">Back to Home</a>
+        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">Back to Home</a>
         <h1 class="display-5 fw-bold text-center">Data Privacy Sentiment Analysis</h1>
         <div style="width: 100px;"></div> <!-- Empty div for centering -->
     </div>
@@ -30,7 +30,7 @@
         <div class="card">
             <div class="card-header"><h2>Video Selection</h2></div>
             <div class="card-body">
-                <form id="videoSelectForm" action="{{ url_for('sentiment_analysis') }}" method="get">
+                <form id="videoSelectForm" action="{{ url_for('sentiment.sentiment_analysis') }}" method="get">
                     <div class="mb-3">
                         <label for="videoSelect" class="form-label">Select a data privacy video:</label>
                         <select class="form-select" id="videoSelect" name="video_id" onchange="this.form.submit()">
