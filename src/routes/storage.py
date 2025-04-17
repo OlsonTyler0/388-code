@@ -21,7 +21,8 @@ def storage_manager():
                 if current_videos:
                     date_str = datetime.now().strftime("%Y-%m-%d")
                     filename = f"{date_str}-privacy-analysis.json"
-                    data_storage.save_videos_data(current_videos)
+                    # Pass the filename to save_videos_data
+                    data_storage.save_videos_data(current_videos, filename)  
                     flash('Data successfully uploaded to storage!', 'success')
                 else:
                     flash('No current video data to upload', 'error')
@@ -39,7 +40,6 @@ def storage_manager():
         logger.error(f"Error in storage manager: {str(e)}")
         flash(f"An error occurred: {str(e)}", 'error')
         return render_template('storage_manager.html', files=[])
-
 
 @storage_bp.route('/summarize_json', methods=['GET'])
 @login_required

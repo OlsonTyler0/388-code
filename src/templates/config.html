@@ -20,6 +20,38 @@
         {% endif %}
     {% endwith %}
 
+    <!-- New Storage and API Settings Section -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header"><h2>Storage and API Settings</h2></div>
+                <div class="card-body">
+                    <!-- Storage Bucket Form -->
+                    <form method="POST" class="mb-4">
+                        <div class="mb-3">
+                            <label for="bucket_name" class="form-label">Storage Bucket Name</label>
+                            <input type="text" class="form-control" id="bucket_name" 
+                                   name="bucket_name" value="{{ current_bucket }}" required>
+                            <div class="form-text">Current bucket: {{ current_bucket }}</div>
+                        </div>
+                        <button type="submit" name="update_bucket" class="btn btn-primary">Update Bucket</button>
+                    </form>
+
+                    <!-- YouTube API Key Form -->
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="api_key" class="form-label">YouTube API Key</label>
+                            <input type="password" class="form-control" id="api_key" 
+                                   name="api_key" value="{{ current_api_key }}" required>
+                            <div class="form-text">Enter your YouTube Data API v3 key</div>
+                        </div>
+                        <button type="submit" name="update_api_key" class="btn btn-primary">Update API Key</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col-md-8 mx-auto">
             <div class="card">

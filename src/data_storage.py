@@ -36,20 +36,24 @@ class DataStorage:
             bucket = self.storage_client.create_bucket(self.bucket_name)
             logger.info(f"Bucket {bucket.name} created.")
     
-    def save_videos_data(self, videos_data):
+    def save_videos_data(self, videos_data, blob_name=None):
         """
         Save videos data to Cloud Storage
         
         Args:
             videos_data: List of video dictionaries to save
+            blob_name: Optional custom name for the blob
         
         Returns:
             Blob name of the saved data
         """
         try:
             bucket = self.storage_client.bucket(self.bucket_name)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            blob_name = f"videos_data_{timestamp}.json"
+            
+            if blob_name is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                blob_name = f"videos_data_{timestamp}.json"
+                
             blob = bucket.blob(blob_name)
             
             data_json = json.dumps(videos_data, indent=2)
@@ -95,20 +99,16 @@ class DataStorage:
         
         Args:
             blob_name: Name of the blob to load
-        
+            
         Returns:
-            Loaded data as Python object
+            Dictionary containing the loaded data
         """
         try:
             bucket = self.storage_client.bucket(self.bucket_name)
             blob = bucket.blob(blob_name)
             
-            content = blob.download_as_text()
-            
-            data = json.loads(content)
-            
-            logger.info(f"Loaded data from {blob_name}")
-            return data
+            data_json = blob.download_as_string()
+            return json.loads(data_json)
         except Exception as e:
             logger.error(f"Error loading data: {str(e)}")
             raise e
