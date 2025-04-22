@@ -3,38 +3,52 @@
 #       Handles the data storage for the website
 # ╚═══════════════════════════════════════════════════════════╝
 
-
 from google.cloud import storage
 import json
 from datetime import datetime
 import logging
+from flask import session
 
 logger = logging.getLogger(__name__)
 
 class DataStorage:
-    def __init__(self, bucket_name):
+    def __init__(self, bucket_name=None):
         """
         Initialize the Storage client and set bucket name
         
         Args:
-            bucket_name: Name of the GCS bucket
+            bucket_name: Name of the GCS bucket, defaults to session bucket if available
         """
         try:
+            # Allow bucket name to be overridden by session if available
+            self.bucket_name = bucket_name or session.get('storage_bucket', 'itc-388-youtube-r6')
+            
+            # Initialize Google Cloud Storage client
             self.storage_client = storage.Client()
-            self.bucket_name = bucket_name
+            
+            # Ensure bucket exists
             self._ensure_bucket_exists()
+            
+            logger.info(f"Initialized DataStorage with bucket: {self.bucket_name}")
         except Exception as e:
             logger.error(f"Error initializing DataStorage: {str(e)}")
-            raise e
+            raise RuntimeError(f"Failed to initialize storage: {str(e)}") from e
     
     def _ensure_bucket_exists(self):
         """Ensure the bucket exists, create if it doesn't"""
         try:
-            self.storage_client.get_bucket(self.bucket_name)
-        except Exception:
+            # Try to get the bucket
+            self.bucket = self.storage_client.get_bucket(self.bucket_name)
+            logger.debug(f"Using existing bucket: {self.bucket_name}")
+        except Exception as e:
+            # If bucket does not exist, create it
             logger.info(f"Bucket {self.bucket_name} does not exist. Creating...")
-            bucket = self.storage_client.create_bucket(self.bucket_name)
-            logger.info(f"Bucket {bucket.name} created.")
+            try:
+                self.bucket = self.storage_client.create_bucket(self.bucket_name)
+                logger.info(f"Bucket {self.bucket.name} created successfully.")
+            except Exception as create_error:
+                logger.error(f"Failed to create bucket {self.bucket_name}: {str(create_error)}")
+                raise RuntimeError(f"Failed to create bucket: {str(create_error)}") from create_error
     
     def save_videos_data(self, videos_data, blob_name=None):
         """
@@ -47,24 +61,41 @@ class DataStorage:
         Returns:
             Blob name of the saved data
         """
-        try:
-            bucket = self.storage_client.bucket(self.bucket_name)
+        if not videos_data:
+            logger.warning("Attempting to save empty video data")
+            return None
             
+        try:
+            # Generate a default blob name if not provided
             if blob_name is None:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 blob_name = f"videos_data_{timestamp}.json"
-                
-            blob = bucket.blob(blob_name)
             
+            # Reference to the blob
+            blob = self.bucket.blob(blob_name)
+            
+            # Convert data to JSON with proper formatting
             data_json = json.dumps(videos_data, indent=2)
             
-            blob.upload_from_string(data_json, content_type="application/json")
+            # Upload the JSON string to the bucket
+            blob.upload_from_string(
+                data_json,
+                content_type="application/json"
+            )
             
-            logger.info(f"Saved videos data to {blob_name}")
+            # Set metadata on the blob
+            blob.metadata = {
+                'uploaded_at': datetime.now().isoformat(),
+                'item_count': str(len(videos_data)) if isinstance(videos_data, list) else 'N/A',
+                'content_type': 'youtube_videos'
+            }
+            blob.patch()
+            
+            logger.info(f"Successfully saved {len(videos_data) if isinstance(videos_data, list) else 'unknown'} videos to {blob_name}")
             return blob_name
         except Exception as e:
             logger.error(f"Error saving videos data: {str(e)}")
-            raise e
+            raise RuntimeError(f"Failed to save data: {str(e)}") from e
 
     def save_comments_data(self, video_id, comments_data):
         """
@@ -77,21 +108,41 @@ class DataStorage:
         Returns:
             Blob name of the saved data
         """
+        if not video_id or not comments_data:
+            logger.warning("Missing video_id or comments_data")
+            return None
+            
         try:
-            bucket = self.storage_client.bucket(self.bucket_name)
+            # Generate blob name with video ID and timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             blob_name = f"comments_{video_id}_{timestamp}.json"
-            blob = bucket.blob(blob_name)
             
+            # Reference to the blob
+            blob = self.bucket.blob(blob_name)
+            
+            # Convert data to JSON with proper formatting
             data_json = json.dumps(comments_data, indent=2)
             
-            blob.upload_from_string(data_json, content_type="application/json")
+            # Upload the JSON string to the bucket
+            blob.upload_from_string(
+                data_json, 
+                content_type="application/json"
+            )
             
-            logger.info(f"Saved comments data to {blob_name}")
+            # Set metadata on the blob
+            blob.metadata = {
+                'uploaded_at': datetime.now().isoformat(),
+                'video_id': video_id,
+                'comment_count': str(len(comments_data)),
+                'content_type': 'youtube_comments'
+            }
+            blob.patch()
+            
+            logger.info(f"Successfully saved {len(comments_data)} comments for video {video_id} to {blob_name}")
             return blob_name
         except Exception as e:
             logger.error(f"Error saving comments data: {str(e)}")
-            raise e
+            raise RuntimeError(f"Failed to save comments: {str(e)}") from e
 
     def load_data(self, blob_name):
         """
@@ -103,30 +154,91 @@ class DataStorage:
         Returns:
             Dictionary containing the loaded data
         """
-        try:
-            bucket = self.storage_client.bucket(self.bucket_name)
-            blob = bucket.blob(blob_name)
+        if not blob_name:
+            logger.warning("No blob name provided")
+            return None
             
+        try:
+            # Reference to the blob
+            blob = self.bucket.blob(blob_name)
+            
+            # Check if blob exists
+            if not blob.exists():
+                logger.warning(f"Blob {blob_name} does not exist")
+                raise FileNotFoundError(f"File {blob_name} not found in bucket {self.bucket_name}")
+            
+            # Download and parse the JSON data
             data_json = blob.download_as_string()
             return json.loads(data_json)
+        except json.JSONDecodeError as e:
+            logger.error(f"Error parsing JSON from {blob_name}: {str(e)}")
+            raise ValueError(f"Invalid JSON in file {blob_name}") from e
         except Exception as e:
-            logger.error(f"Error loading data: {str(e)}")
-            raise e
+            logger.error(f"Error loading data from {blob_name}: {str(e)}")
+            raise RuntimeError(f"Failed to load data: {str(e)}") from e
             
-    def list_blobs(self, prefix=None):
+    def list_blobs(self, prefix=None, max_results=None):
         """
         List all blobs in the bucket
         
         Args:
             prefix: Optional prefix to filter blobs
+            max_results: Optional maximum number of results to return
             
         Returns:
             List of blob names
         """
         try:
-            bucket = self.storage_client.bucket(self.bucket_name)
-            blobs = bucket.list_blobs(prefix=prefix)
+            # List blobs with optional filters
+            blobs = self.bucket.list_blobs(prefix=prefix, max_results=max_results)
             return [blob.name for blob in blobs]
         except Exception as e:
             logger.error(f"Error listing blobs: {str(e)}")
-            raise e
+            raise RuntimeError(f"Failed to list files: {str(e)}") from e
+    
+    def get_blob_metadata(self, blob_name):
+        """
+        Get metadata for a specific blob
+        
+        Args:
+            blob_name: Name of the blob
+            
+        Returns:
+            Dictionary of metadata
+        """
+        try:
+            blob = self.bucket.blob(blob_name)
+            blob.reload()  # Ensure we have the latest metadata
+            
+            # Combine standard and custom metadata
+            metadata = {
+                'name': blob.name,
+                'size': blob.size,
+                'updated': blob.updated.isoformat() if blob.updated else None,
+                'content_type': blob.content_type,
+                'custom_metadata': blob.metadata or {}
+            }
+            
+            return metadata
+        except Exception as e:
+            logger.error(f"Error getting metadata for {blob_name}: {str(e)}")
+            raise RuntimeError(f"Failed to get metadata: {str(e)}") from e
+    
+    def delete_blob(self, blob_name):
+        """
+        Delete a blob from the bucket
+        
+        Args:
+            blob_name: Name of the blob to delete
+            
+        Returns:
+            True if deleted successfully
+        """
+        try:
+            blob = self.bucket.blob(blob_name)
+            blob.delete()
+            logger.info(f"Successfully deleted {blob_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting {blob_name}: {str(e)}")
+            raise RuntimeError(f"Failed to delete file: {str(e)}") from e

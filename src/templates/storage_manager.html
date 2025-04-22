@@ -1,49 +1,231 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container">
-    <h2>Storage Manager</h2>
-    
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+{% block title %}Storage Manager{% endblock %}
 
-    <!-- Upload Section -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Upload Current Data</h5>
-            <form method="POST">
-                <button type="submit" name="upload" class="btn btn-primary" onclick="this.disabled=true;this.innerHTML='Uploading...';">
-                    Upload Current Data
-                </button>
-            </form>
+{% block styles %}
+<style>
+    .file-item {
+        transition: all 0.2s ease;
+    }
+    .file-item:hover {
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+    .latest-upload {
+        border-left: 4px solid #28a745;
+    }
+    .timestamp {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .file-btn-group {
+        display: flex;
+        gap: 5px;
+    }
+    .loading-indicator {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+    .spinner-border {
+        width: 2rem;
+        height: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="pb-3 mb-4 border-bottom">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">Back to Home</a>
+        <h1 class="display-5 fw-bold text-center">Storage Manager</h1>
+        <div style="width: 100px;"></div>
+    </div>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <!-- Current Storage Info Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Storage Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Current Bucket:</strong> {{ session.get('storage_bucket', 'itc-388-youtube-r6') }}</p>
+                <p><strong>Files Count:</strong> {{ files|length if files else 0 }}</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.config') }}" class="btn btn-outline-primary">Change Bucket Settings</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Upload New Data</h5>
+            </div>
+            <div class="card-body">
+                <p>Upload current YouTube data privacy videos to Google Cloud Storage.</p>
+                <form method="POST" id="uploadForm">
+                    <div class="d-grid gap-2">
+                        <button type="submit" name="upload" class="btn btn-success" id="uploadButton">
+                            <i class="bi bi-cloud-upload"></i> Upload Data
+                        </button>
+                    </div>
+                </form>
+                <div class="loading-indicator" id="loadingIndicator">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Uploading data...</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Files List -->
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Stored Files</h5>
-            {% if files %}
-                <div class="list-group">
-                {% for file in files %}
-                    <div class="list-group-item {% if latest_upload and latest_upload == file %}list-group-item-success{% endif %}">
-                        {{ file }}
-                        <form method="POST" class="d-inline float-right">
-                            <input type="hidden" name="blob_name" value="{{ file }}">
-                            <button type="submit" name="download" class="btn btn-sm btn-info">Download</button>
-                        </form>
+    <div class="col-md-8">
+        <!-- Files List -->
+        <div class="card">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Stored Files</h5>
+                <input type="text" class="form-control form-control-sm" id="fileSearch" placeholder="Search files..." style="width: 200px;">
+            </div>
+            <div class="card-body">
+                {% if files %}
+                    <div class="list-group" id="filesList">
+                        {% for file in files %}
+                            <div class="list-group-item file-item {% if latest_upload and latest_upload == file %}latest-upload{% endif %}">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">{{ file }}</h6>
+                                    <span class="timestamp">
+                                        {% if 'videos_data_' in file or 'privacy_videos_' in file or 'comments_' in file %}
+                                            {% set timestamp = file.split('_')[-1].split('.')[0] %}
+                                            {% if timestamp|length >= 8 %}
+                                                {{ timestamp[0:4] }}-{{ timestamp[4:6] }}-{{ timestamp[6:8] }}
+                                                {% if timestamp|length > 8 %}
+                                                    {{ timestamp[8:10] }}:{{ timestamp[10:12] }}:{{ timestamp[12:14] }}
+                                                {% endif %}
+                                            {% else %}
+                                                Unknown date
+                                            {% endif %}
+                                        {% else %}
+                                            Unknown date
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge {% if 'videos' in file %}bg-primary{% elif 'comments' in file %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if 'videos' in file %}Videos{% elif 'comments' in file %}Comments{% else %}Data{% endif %}
+                                    </span>
+                                    <div class="file-btn-group">
+                                        <a href="{{ url_for('storage.summarize_json', bucket_name=session.get('storage_bucket', 'itc-388-youtube-r6'), source_blob_name=file) }}" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-primary download-btn" data-filename="{{ file }}">
+                                            <i class="bi bi-download"></i> Download
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-                </div>
-            {% else %}
-                <p>No files found in storage.</p>
-            {% endif %}
+                    <div class="text-center mt-3" id="noResults" style="display: none;">
+                        <p class="text-muted">No files match your search.</p>
+                    </div>
+                {% else %}
+                    <div class="text-center">
+                        <p class="text-muted">No files found in storage.</p>
+                        <p>Upload data to see files here.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Upload form handling
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadButton = document.getElementById('uploadButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', function() {
+                uploadButton.disabled = true;
+                loadingIndicator.style.display = 'block';
+                uploadForm.style.display = 'none';
+            });
+        }
+        
+        // Search functionality
+        const fileSearch = document.getElementById('fileSearch');
+        const filesList = document.getElementById('filesList');
+        const noResults = document.getElementById('noResults');
+        
+        if (fileSearch && filesList) {
+            fileSearch.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const fileItems = filesList.getElementsByClassName('file-item');
+                let matchFound = false;
+                
+                for (let item of fileItems) {
+                    const fileName = item.getElementsByTagName('h6')[0].textContent.toLowerCase();
+                    
+                    if (fileName.includes(searchTerm)) {
+                        item.style.display = 'block';
+                        matchFound = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+                
+                if (noResults) {
+                    noResults.style.display = matchFound ? 'none' : 'block';
+                }
+            });
+        }
+        
+        // Download button handling
+        const downloadButtons = document.querySelectorAll('.download-btn');
+        
+        downloadButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const filename = this.getAttribute('data-filename');
+                
+                // Create a form and submit it to trigger the download
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = window.location.href;
+                
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'blob_name';
+                hiddenInput.value = filename;
+                
+                const submitInput = document.createElement('input');
+                submitInput.type = 'hidden';
+                submitInput.name = 'download';
+                submitInput.value = '1';
+                
+                form.appendChild(hiddenInput);
+                form.appendChild(submitInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    });
+</script>
 {% endblock %}
