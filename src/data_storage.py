@@ -75,7 +75,13 @@ class DataStorage:
             blob = self.bucket.blob(blob_name)
             
             # Convert data to JSON with proper formatting
-            data_json = json.dumps(videos_data, indent=2)
+            # Add better error handling for non-serializable objects
+            try:
+                data_json = json.dumps(videos_data, indent=2)
+            except TypeError as e:
+                logger.error(f"JSON serialization error: {str(e)}")
+                # Try a more basic approach for serialization
+                data_json = json.dumps(self._sanitize_for_json(videos_data), indent=2)
             
             # Upload the JSON string to the bucket
             blob.upload_from_string(
@@ -96,6 +102,26 @@ class DataStorage:
         except Exception as e:
             logger.error(f"Error saving videos data: {str(e)}")
             raise RuntimeError(f"Failed to save data: {str(e)}") from e
+
+    def _sanitize_for_json(self, data):
+        """
+        Sanitize data to ensure it's JSON serializable
+        
+        Args:
+            data: The data to sanitize
+            
+        Returns:
+            JSON serializable version of the data
+        """
+        if isinstance(data, dict):
+            return {k: self._sanitize_for_json(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [self._sanitize_for_json(item) for item in data]
+        elif isinstance(data, (str, int, float, bool, type(None))):
+            return data
+        else:
+            # Convert non-serializable objects to strings
+            return str(data)
 
     def save_comments_data(self, video_id, comments_data):
         """
@@ -121,7 +147,12 @@ class DataStorage:
             blob = self.bucket.blob(blob_name)
             
             # Convert data to JSON with proper formatting
-            data_json = json.dumps(comments_data, indent=2)
+            try:
+                data_json = json.dumps(comments_data, indent=2)
+            except TypeError as e:
+                logger.error(f"JSON serialization error: {str(e)}")
+                # Try a more basic approach for serialization
+                data_json = json.dumps(self._sanitize_for_json(comments_data), indent=2)
             
             # Upload the JSON string to the bucket
             blob.upload_from_string(

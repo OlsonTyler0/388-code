@@ -75,11 +75,11 @@
                 <h5 class="mb-0">Upload New Data</h5>
             </div>
             <div class="card-body">
-                <p>Upload current YouTube data privacy videos to Google Cloud Storage.</p>
+                <p>Upload YouTube data privacy videos to Google Cloud Storage.</p>
                 <form method="POST" id="uploadForm">
                     <div class="d-grid gap-2">
                         <button type="submit" name="upload" class="btn btn-success" id="uploadButton">
-                            <i class="bi bi-cloud-upload"></i> Upload Data
+                            <i class="bi bi-cloud-upload"></i> Upload Privacy Video Data
                         </button>
                     </div>
                 </form>
@@ -131,9 +131,12 @@
                                         <a href="{{ url_for('storage.summarize_json', bucket_name=session.get('storage_bucket', 'itc-388-youtube-r6'), source_blob_name=file) }}" class="btn btn-sm btn-info">
                                             <i class="bi bi-eye"></i> View
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-primary download-btn" data-filename="{{ file }}">
-                                            <i class="bi bi-download"></i> Download
-                                        </button>
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="blob_name" value="{{ file }}">
+                                            <button type="submit" name="download" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-download"></i> Download
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -197,35 +200,6 @@
                 }
             });
         }
-        
-        // Download button handling
-        const downloadButtons = document.querySelectorAll('.download-btn');
-        
-        downloadButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const filename = this.getAttribute('data-filename');
-                
-                // Create a form and submit it to trigger the download
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = window.location.href;
-                
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'blob_name';
-                hiddenInput.value = filename;
-                
-                const submitInput = document.createElement('input');
-                submitInput.type = 'hidden';
-                submitInput.name = 'download';
-                submitInput.value = '1';
-                
-                form.appendChild(hiddenInput);
-                form.appendChild(submitInput);
-                document.body.appendChild(form);
-                form.submit();
-            });
-        });
     });
 </script>
 {% endblock %}

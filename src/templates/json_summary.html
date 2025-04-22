@@ -5,7 +5,7 @@
 {% block content %}
 <header class="pb-3 mb-4 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
-        <a href="{{ url_for('main.more') }}" class="btn btn-outline-primary">Back to More Options</a>
+        <a href="{{ url_for('storage.storage_manager') }}" class="btn btn-outline-primary">Back to Storage Manager</a>
         <h1 class="display-5 fw-bold text-center">JSON Data Summary</h1>
         <div style="width: 100px;"></div>
     </div>
@@ -32,7 +32,7 @@
                     <strong>Item Count:</strong> {{ summary.item_count }}
                 </div>
                 
-                {% if summary.keys != "No keys found or empty list" %}
+                {% if summary.keys and summary.keys != "No keys found or empty list" and summary.keys != "Not a list or dictionary" %}
                 <div class="mb-3">
                     <strong>Available Fields:</strong>
                     <ul>
@@ -41,12 +41,20 @@
                         {% endfor %}
                     </ul>
                 </div>
+                {% elif summary.keys %}
+                <div class="mb-3">
+                    <strong>Structure:</strong> {{ summary.keys }}
+                </div>
                 {% endif %}
                 
-                {% if summary.sample != "No sample available" %}
+                {% if summary.sample and summary.sample != "No sample available" %}
                 <div class="mb-3">
                     <strong>Sample Item:</strong>
                     <pre class="bg-light p-3 mt-2">{{ summary.sample | tojson(indent=2) }}</pre>
+                </div>
+                {% elif summary.sample %}
+                <div class="mb-3">
+                    <strong>Sample:</strong> {{ summary.sample }}
                 </div>
                 {% endif %}
             </div>
