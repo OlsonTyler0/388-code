@@ -30,6 +30,19 @@
         width: 2rem;
         height: 2rem;
     }
+    .storage-status {
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+    .status-connected {
+        background-color: rgba(40, 167, 69, 0.1);
+        border-left: 4px solid #28a745;
+    }
+    .status-error {
+        background-color: rgba(220, 53, 69, 0.1);
+        border-left: 4px solid #dc3545;
+    }
 </style>
 {% endblock %}
 
@@ -61,6 +74,17 @@
                 <h5 class="mb-0">Storage Information</h5>
             </div>
             <div class="card-body">
+                {% if upload_error %}
+                <div class="storage-status status-error mb-3">
+                    <strong>Storage Status:</strong> Not Connected
+                    <p class="text-danger mb-0">{{ upload_error }}</p>
+                </div>
+                {% else %}
+                <div class="storage-status status-connected mb-3">
+                    <strong>Storage Status:</strong> Connected
+                </div>
+                {% endif %}
+
                 <p><strong>Current Bucket:</strong> {{ session.get('storage_bucket', 'itc-388-youtube-r6') }}</p>
                 <p><strong>Files Count:</strong> {{ files|length if files else 0 }}</p>
                 <div class="d-grid gap-2">
@@ -78,7 +102,7 @@
                 <p>Upload YouTube data privacy videos to Google Cloud Storage.</p>
                 <form method="POST" id="uploadForm">
                     <div class="d-grid gap-2">
-                        <button type="submit" name="upload" class="btn btn-success" id="uploadButton">
+                        <button type="submit" name="upload" class="btn btn-success" id="uploadButton" {% if upload_error %}disabled{% endif %}>
                             <i class="bi bi-cloud-upload"></i> Upload Privacy Video Data
                         </button>
                     </div>
@@ -87,8 +111,23 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Uploading data...</p>
+                    <p class="mt-2">Uploading data to Google Cloud Storage...</p>
+                    <p class="small text-muted">This may take a moment. Please don't close this page.</p>
                 </div>
+                
+                {% if upload_error %}
+                <div class="alert alert-warning mt-3">
+                    <strong>Note:</strong> Upload functionality is disabled until the storage connection issues are resolved.
+                </div>
+                <div class="mt-3">
+                    <h6>Troubleshooting:</h6>
+                    <ul>
+                        <li>Check if Google Cloud credentials are properly configured</li>
+                        <li>Verify that your service account has appropriate permissions</li>
+                        <li>Make sure the bucket name is correct and accessible</li>
+                    </ul>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -148,7 +187,13 @@
                 {% else %}
                     <div class="text-center">
                         <p class="text-muted">No files found in storage.</p>
-                        <p>Upload data to see files here.</p>
+                        {% if upload_error %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Cannot display files due to storage connection issues.
+                            </div>
+                        {% else %}
+                            <p>Upload data to see files here.</p>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>
