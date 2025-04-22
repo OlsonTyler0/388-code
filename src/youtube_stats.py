@@ -9,12 +9,13 @@ from googleapiclient.errors import HttpError
 import os
 import json
 import logging
+from flask import session
 
 logger = logging.getLogger(__name__)
 
 class YouTubeStats:
     def __init__(self):
-        self.api_key = os.environ.get('YOUTUBE_API_KEY', 'your-api-key-here')
+        self.api_key = session.get('youtube_api_key') or os.environ.get('YOUTUBE_API_KEY', 'your-api-key-here')
         self.youtube = build('youtube', 'v3', developerKey=self.api_key)
     
     def get_top_popular_videos(self, max_results=20, region_code='US'):

@@ -9,6 +9,7 @@ from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash
 from src.models import User, db
 from src.utils.decorators import admin_required
+import os
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -43,7 +44,9 @@ def config():
         if 'update_api_key' in request.form:
             new_api_key = request.form.get('api_key')
             if new_api_key:
+                # Store in both session and environment
                 session['youtube_api_key'] = new_api_key
+                os.environ['YOUTUBE_API_KEY'] = new_api_key
                 flash('YouTube API key updated successfully')
 
         use_google_api = 'use_google_api' in request.form
