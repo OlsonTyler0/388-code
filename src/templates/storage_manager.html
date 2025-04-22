@@ -17,7 +17,9 @@
         <div class="card-body">
             <h5 class="card-title">Upload Current Data</h5>
             <form method="POST">
-                <button type="submit" name="upload" class="btn btn-primary">Upload Current Data</button>
+                <button type="submit" name="upload" class="btn btn-primary" onclick="this.disabled=true;this.innerHTML='Uploading...';">
+                    Upload Current Data
+                </button>
             </form>
         </div>
     </div>

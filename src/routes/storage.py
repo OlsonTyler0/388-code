@@ -17,8 +17,11 @@ def storage_manager():
         
         if request.method == 'POST':
             if 'upload' in request.form:
-                current_videos = session.get('current_videos')
-                if current_videos:
+                # Get fresh data from YouTube API instead of relying on session
+                youtube_stats = YouTubeStats()
+                current_videos = youtube_stats.get_top_popular_videos()  # or whatever method you're using to get videos
+                
+                if current_videos and not isinstance(current_videos, dict):  # Check it's not an error response
                     date_str = datetime.now().strftime("%Y-%m-%d")
                     filename = f"{date_str}-privacy-analysis.json"
                     saved_filename = data_storage.save_videos_data(current_videos, filename)
@@ -29,7 +32,8 @@ def storage_manager():
                                         files=files,
                                         latest_upload=saved_filename)
                 else:
-                    flash('No current video data to upload', 'error')
+                    error_message = current_videos.get('error', 'No current video data to upload') if isinstance(current_videos, dict) else 'No current video data to upload'
+                    flash(error_message, 'error')
             
             elif 'download' in request.form:
                 blob_name = request.form.get('blob_name')
