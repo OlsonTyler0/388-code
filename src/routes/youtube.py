@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session
 from flask_login import login_required
 from ..youtube_stats import YouTubeStats
 import logging
+from datetime import datetime  # Add this import
 
 logger = logging.getLogger(__name__)
 youtube_bp = Blueprint('youtube', __name__)

@@ -1,11 +1,10 @@
 # src/routes/storage.py
-from flask import Blueprint, render_template, request, session, flash, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, session, flash, jsonify
 from flask_login import login_required
 from ..data_storage import DataStorage
 from ..youtube_stats import YouTubeStats  # Add this import
 from datetime import datetime
 import logging
-import json
 
 logger = logging.getLogger(__name__)
 storage_bp = Blueprint('storage', __name__)
@@ -14,76 +13,41 @@ storage_bp = Blueprint('storage', __name__)
 @login_required
 def storage_manager():
     try:
-        # Get bucket name from session or use default
         bucket_name = session.get('storage_bucket', 'itc-388-youtube-r6')
         data_storage = DataStorage(bucket_name)
-        latest_upload = None
         
         if request.method == 'POST':
             if 'upload' in request.form:
-                try:
-                    # Initialize YouTube API client
-                    youtube_stats = YouTubeStats()
-                    
-                    # Get videos related to data privacy
-                    privacy_videos = youtube_stats.search_privacy_videos(max_results=20)
-                    
-                    # Check if we received valid data
-                    if isinstance(privacy_videos, dict) and 'error' in privacy_videos:
-                        flash(f"Error fetching videos: {privacy_videos['error']}", 'danger')
-                        return redirect(url_for('storage.storage_manager'))
-                    
-                    if not privacy_videos:
-                        flash('No video data found to upload', 'warning')
-                        return redirect(url_for('storage.storage_manager'))
-                    
-                    # Create filename with timestamp for uniqueness
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"privacy_videos_{timestamp}.json"
-                    
-                    # Save data to Google Cloud Storage
-                    saved_filename = data_storage.save_videos_data(privacy_videos, filename)
-                    
-                    # Set success message and update latest upload reference
+                # Get fresh data from YouTube API instead of relying on session
+                youtube_stats = YouTubeStats()
+                current_videos = youtube_stats.get_top_popular_videos()  # or whatever method you're using to get videos
+                
+                if current_videos and not isinstance(current_videos, dict):  # Check it's not an error response
+                    date_str = datetime.now().strftime("%Y-%m-%d")
+                    filename = f"{date_str}-privacy-analysis.json"
+                    saved_filename = data_storage.save_videos_data(current_videos, filename)
                     flash(f'Data successfully uploaded as {saved_filename}!', 'success')
-                    latest_upload = saved_filename
-                    
-                except Exception as e:
-                    logger.error(f"Error during data upload: {str(e)}")
-                    flash(f"Error during upload: {str(e)}", 'danger')
-                    return redirect(url_for('storage.storage_manager'))
+                    # Force refresh the file list
+                    files = data_storage.list_blobs()
+                    return render_template('storage_manager.html', 
+                                        files=files,
+                                        latest_upload=saved_filename)
+                else:
+                    error_message = current_videos.get('error', 'No current video data to upload') if isinstance(current_videos, dict) else 'No current video data to upload'
+                    flash(error_message, 'error')
             
             elif 'download' in request.form:
                 blob_name = request.form.get('blob_name')
-                if not blob_name:
-                    flash('No file specified for download', 'warning')
-                    return redirect(url_for('storage.storage_manager'))
-                
-                try:
-                    # Load data from Google Cloud Storage
+                if blob_name:
                     data = data_storage.load_data(blob_name)
                     return jsonify(data)
-                except Exception as e:
-                    logger.error(f"Error downloading file {blob_name}: {str(e)}")
-                    flash(f"Error downloading file: {str(e)}", 'danger')
-                    return redirect(url_for('storage.storage_manager'))
         
-        # List all files in the bucket
-        try:
-            files = data_storage.list_blobs()
-            files.sort(reverse=True)  # Show newest files first
-        except Exception as e:
-            logger.error(f"Error listing files: {str(e)}")
-            flash(f"Error listing files: {str(e)}", 'danger')
-            files = []
-        
-        return render_template('storage_manager.html', 
-                              files=files,
-                              latest_upload=latest_upload)
+        files = data_storage.list_blobs()
+        return render_template('storage_manager.html', files=files)
 
     except Exception as e:
         logger.error(f"Error in storage manager: {str(e)}")
-        flash(f"An error occurred: {str(e)}", 'danger')
+        flash(f"An error occurred: {str(e)}", 'error')
         return render_template('storage_manager.html', files=[])
 
 @storage_bp.route('/summarize_json', methods=['GET'])
