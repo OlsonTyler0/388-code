@@ -1,47 +1,106 @@
 {% extends "base.html" %}
 
-{% block title %}Storage Manager{% endblock %}
+{% block title %}Storage Manager - Privacy Pulse{% endblock %}
 
 {% block styles %}
 <style>
     .file-item {
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
     }
+    
     .file-item:hover {
-        background-color: rgba(0, 123, 255, 0.1);
+        background-color: rgba(67, 97, 238, 0.05);
+        transform: translateX(5px);
     }
+    
     .latest-upload {
-        border-left: 4px solid #28a745;
+        border-left: 4px solid #28a745 !important;
+        background-color: rgba(40, 167, 69, 0.05);
     }
+    
     .timestamp {
         font-size: 0.85rem;
         color: #6c757d;
     }
+    
     .file-btn-group {
         display: flex;
         gap: 5px;
     }
+    
     .loading-indicator {
         display: none;
         text-align: center;
         padding: 20px;
     }
+    
     .spinner-border {
         width: 2rem;
         height: 2rem;
     }
+    
     .storage-status {
-        padding: 10px;
-        border-radius: 4px;
-        margin-bottom: 15px;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
     }
+    
     .status-connected {
         background-color: rgba(40, 167, 69, 0.1);
         border-left: 4px solid #28a745;
     }
+    
     .status-error {
         background-color: rgba(220, 53, 69, 0.1);
         border-left: 4px solid #dc3545;
+    }
+    
+    .info-card {
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-header-custom {
+        padding: 20px;
+        color: #fff;
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .storage-header {
+        background: linear-gradient(45deg, #4cc9f0, #4361ee);
+    }
+    
+    .upload-header {
+        background: linear-gradient(45deg, #4895ef, #4cc9f0);
+    }
+    
+    .files-header {
+        background: linear-gradient(45deg, #4361ee, #3f37c9);
+    }
+    
+    .file-type-badge {
+        font-size: 0.7rem;
+        padding: 5px 10px;
+        border-radius: 20px;
+    }
+    
+    .file-badge-videos {
+        background-color: rgba(67, 97, 238, 0.15);
+        color: var(--primary-color);
+    }
+    
+    .file-badge-comments {
+        background-color: rgba(76, 201, 240, 0.15);
+        color: var(--success-color);
+    }
+    
+    .file-badge-data {
+        background-color: rgba(63, 55, 201, 0.15);
+        color: var(--secondary-color);
     }
 </style>
 {% endblock %}
@@ -49,8 +108,12 @@
 {% block content %}
 <header class="pb-3 mb-4 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
-        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">Back to Home</a>
-        <h1 class="display-5 fw-bold text-center">Storage Manager</h1>
+        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Home
+        </a>
+        <h1 class="display-5 fw-bold text-center">
+            <i class="bi bi-cloud me-2"></i>Storage Manager
+        </h1>
         <div style="width: 100px;"></div>
     </div>
 </header>
@@ -66,67 +129,109 @@
     {% endif %}
 {% endwith %}
 
-<div class="row mb-4">
+<div class="row mb-5">
     <div class="col-md-4">
         <!-- Current Storage Info Card -->
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Storage Information</h5>
+        <div class="card info-card mb-4 shadow-sm">
+            <div class="card-header-custom storage-header">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-hdd-rack me-2"></i>
+                    Storage Information
+                </h5>
             </div>
             <div class="card-body">
                 {% if upload_error %}
                 <div class="storage-status status-error mb-3">
-                    <strong>Storage Status:</strong> Not Connected
+                    <h6 class="mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Status: Not Connected</h6>
                     <p class="text-danger mb-0">{{ upload_error }}</p>
                 </div>
                 {% else %}
                 <div class="storage-status status-connected mb-3">
-                    <strong>Storage Status:</strong> Connected
+                    <h6 class="mb-2"><i class="bi bi-check-circle me-2"></i>Status: Connected</h6>
+                    <p class="mb-0 text-muted">Your Google Cloud Storage is properly configured and working</p>
                 </div>
                 {% endif %}
 
-                <p><strong>Current Bucket:</strong> {{ session.get('storage_bucket', 'itc-388-youtube-r6') }}</p>
-                <p><strong>Files Count:</strong> {{ files|length if files else 0 }}</p>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <p class="fw-bold mb-2">Current Bucket:</p>
+                        <span class="badge bg-primary">{{ session.get('storage_bucket', 'itc-388-youtube-r6') }}</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <p class="fw-bold mb-2">Files Count:</p>
+                        <span class="badge bg-info">{{ files|length if files else 0 }}</span>
+                    </div>
+                </div>
+
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('admin.config') }}" class="btn btn-outline-primary">Change Bucket Settings</a>
+                    <a href="{{ url_for('admin.config') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-gear me-2"></i>Change Bucket Settings
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Upload Section -->
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">Upload New Data</h5>
+        <div class="card info-card shadow-sm">
+            <div class="card-header-custom upload-header">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-cloud-upload me-2"></i>
+                    Upload New Data
+                </h5>
             </div>
             <div class="card-body">
-                <p>Upload YouTube data privacy videos to Google Cloud Storage.</p>
+                <p>Upload YouTube data privacy videos to Google Cloud Storage for analysis.</p>
                 <form method="POST" id="uploadForm">
                     <!-- Add hidden input to ensure 'upload' parameter is always sent -->
                     <input type="hidden" name="upload" value="1">
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-success" id="uploadButton" {% if upload_error %}disabled{% endif %}>
-                            <i class="bi bi-cloud-upload"></i> Upload Privacy Video Data
+                            <i class="bi bi-cloud-upload me-2"></i>Upload Privacy Video Data
                         </button>
                     </div>
                 </form>
-                <div class="loading-indicator" id="loadingIndicator">
+                
+                <div class="loading-indicator my-4" id="loadingIndicator">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-2">Uploading data to Google Cloud Storage...</p>
+                    <p class="mt-3 mb-0">Uploading data to Google Cloud Storage...</p>
                     <p class="small text-muted">This may take a moment. Please don't close this page.</p>
                 </div>
                 
                 {% if upload_error %}
-                <div class="alert alert-warning mt-3">
-                    <strong>Note:</strong> Upload functionality is disabled until the storage connection issues are resolved.
+                <div class="alert alert-warning mt-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="bi bi-exclamation-triangle fs-3 text-warning"></i>
+                        </div>
+                        <div>
+                            <strong>Note:</strong> Upload functionality is disabled until the storage connection issues are resolved.
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="mt-3">
-                    <h6>Troubleshooting:</h6>
-                    <ul>
-                        <li>Check if Google Cloud credentials are properly configured</li>
-                        <li>Verify that your service account has appropriate permissions</li>
-                        <li>Make sure the bucket name is correct and accessible</li>
+                    <h6 class="fw-bold">Troubleshooting:</h6>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item bg-transparent ps-0">
+                            <i class="bi bi-check-circle me-2 text-muted"></i>
+                            Check if Google Cloud credentials are properly configured
+                        </li>
+                        <li class="list-group-item bg-transparent ps-0">
+                            <i class="bi bi-check-circle me-2 text-muted"></i>
+                            Verify that your service account has appropriate permissions
+                        </li>
+                        <li class="list-group-item bg-transparent ps-0">
+                            <i class="bi bi-check-circle me-2 text-muted"></i>
+                            Make sure the bucket name is correct and accessible
+                        </li>
                     </ul>
                 </div>
                 {% endif %}
@@ -136,24 +241,34 @@
 
     <div class="col-md-8">
         <!-- Files List -->
-        <div class="card">
-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Stored Files</h5>
-                <input type="text" class="form-control form-control-sm" id="fileSearch" placeholder="Search files..." style="width: 200px;">
+        <div class="card shadow-sm">
+            <div class="card-header-custom files-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-files me-2"></i>
+                    Stored Files
+                </h5>
+                <div class="input-group" style="width: 250px;">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="fileSearch" placeholder="Search files..." aria-label="Search files">
+                </div>
             </div>
             <div class="card-body">
                 {% if files %}
                     <div class="list-group" id="filesList">
                         {% for file in files %}
-                            <div class="list-group-item file-item {% if latest_upload and latest_upload == file %}latest-upload{% endif %}">
+                            <div class="list-group-item file-item d-flex flex-column {% if latest_upload and latest_upload == file %}latest-upload{% endif %} mb-2 rounded">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0">{{ file }}</h6>
+                                    <h6 class="mb-0 text-truncate" style="max-width: 350px;">{{ file }}</h6>
                                     <span class="timestamp">
                                         {% if 'videos_data_' in file or 'privacy_videos_' in file or 'comments_' in file %}
                                             {% set timestamp = file.split('_')[-1].split('.')[0] %}
                                             {% if timestamp|length >= 8 %}
+                                                <i class="bi bi-calendar-event me-1"></i>
                                                 {{ timestamp[0:4] }}-{{ timestamp[4:6] }}-{{ timestamp[6:8] }}
                                                 {% if timestamp|length > 8 %}
+                                                    <i class="bi bi-clock ms-2 me-1"></i>
                                                     {{ timestamp[8:10] }}:{{ timestamp[10:12] }}:{{ timestamp[12:14] }}
                                                 {% endif %}
                                             {% else %}
@@ -165,17 +280,24 @@
                                     </span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="badge {% if 'videos' in file %}bg-primary{% elif 'comments' in file %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {% if 'videos' in file %}Videos{% elif 'comments' in file %}Comments{% else %}Data{% endif %}
+                                    <span class="file-type-badge {% if 'videos' in file %}file-badge-videos{% elif 'comments' in file %}file-badge-comments{% else %}file-badge-data{% endif %}">
+                                        {% if 'videos' in file %}
+                                            <i class="bi bi-film me-1"></i>Videos
+                                        {% elif 'comments' in file %}
+                                            <i class="bi bi-chat-text me-1"></i>Comments
+                                        {% else %}
+                                            <i class="bi bi-file-earmark me-1"></i>Data
+                                        {% endif %}
                                     </span>
                                     <div class="file-btn-group">
-                                        <a href="{{ url_for('storage.summarize_json', bucket_name=session.get('storage_bucket', 'itc-388-youtube-r6'), source_blob_name=file) }}" class="btn btn-sm btn-info">
-                                            <i class="bi bi-eye"></i> View
+                                        <a href="{{ url_for('storage.summarize_json', bucket_name=session.get('storage_bucket', 'itc-388-youtube-r6'), source_blob_name=file) }}" 
+                                           class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-eye me-1"></i> View
                                         </a>
                                         <form method="POST" class="d-inline">
                                             <input type="hidden" name="blob_name" value="{{ file }}">
-                                            <button type="submit" name="download" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-download"></i> Download
+                                            <button type="submit" name="download" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-download me-1"></i> Download
                                             </button>
                                         </form>
                                     </div>
@@ -183,18 +305,23 @@
                             </div>
                         {% endfor %}
                     </div>
-                    <div class="text-center mt-3" id="noResults" style="display: none;">
-                        <p class="text-muted">No files match your search.</p>
+                    <div class="text-center mt-4 py-3" id="noResults" style="display: none;">
+                        <i class="bi bi-search fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No files match your search.</p>
                     </div>
                 {% else %}
-                    <div class="text-center">
-                        <p class="text-muted">No files found in storage.</p>
+                    <div class="text-center py-5">
+                        <i class="bi bi-cloud-slash fs-1 text-muted"></i>
+                        <p class="text-muted mt-3 mb-1">No files found in storage.</p>
                         {% if upload_error %}
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i> Cannot display files due to storage connection issues.
+                            <div class="alert alert-info d-inline-block">
+                                <i class="bi bi-info-circle me-2"></i>Cannot display files due to storage connection issues.
                             </div>
                         {% else %}
                             <p>Upload data to see files here.</p>
+                            <button class="btn btn-success mt-2" id="firstUploadBtn">
+                                <i class="bi bi-cloud-upload me-2"></i>Upload Your First Data
+                            </button>
                         {% endif %}
                     </div>
                 {% endif %}
@@ -211,18 +338,19 @@
         const uploadForm = document.getElementById('uploadForm');
         const uploadButton = document.getElementById('uploadButton');
         const loadingIndicator = document.getElementById('loadingIndicator');
+        const firstUploadBtn = document.getElementById('firstUploadBtn');
         
         if (uploadForm) {
             uploadForm.addEventListener('submit', function(e) {
-                // Log for debugging
                 console.log("Form submission triggered");
-                
-                // Disable button and show loading indicator
                 uploadButton.disabled = true;
                 loadingIndicator.style.display = 'block';
-                
-                // Do not hide the form itself, as it needs to be submitted
-                // Instead, just visually indicate the process is happening
+            });
+        }
+        
+        if (firstUploadBtn) {
+            firstUploadBtn.addEventListener('click', function() {
+                uploadForm.submit();
             });
         }
         
@@ -238,10 +366,10 @@
                 let matchFound = false;
                 
                 for (let item of fileItems) {
-                    const fileName = item.getElementsByTagName('h6')[0].textContent.toLowerCase();
+                    const fileName = item.querySelector('h6').textContent.toLowerCase();
                     
                     if (fileName.includes(searchTerm)) {
-                        item.style.display = 'block';
+                        item.style.display = 'flex';
                         matchFound = true;
                     } else {
                         item.style.display = 'none';

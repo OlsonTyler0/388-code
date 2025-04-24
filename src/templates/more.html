@@ -1,43 +1,213 @@
 {% extends 'base.html' %}
 
-{% block title %}More Options{% endblock %}
+{% block title %}More Options - Privacy Pulse{% endblock %}
+
+{% block styles %}
+<style>
+    .options-card {
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        border: none;
+        height: 100%;
+    }
+    
+    .options-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    }
+    
+    .option-header {
+        padding: 1.5rem;
+        border-bottom: none;
+        background: linear-gradient(45deg, #4361ee, #4895ef);
+        color: white;
+    }
+    
+    .option-title {
+        margin-bottom: 0;
+        font-weight: 600;
+    }
+    
+    .form-control, .form-select {
+        padding: 0.75rem;
+        border-radius: 8px;
+    }
+    
+    .option-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .about-icon {
+        color: var(--primary-color);
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .about-item {
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .about-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <header class="pb-3 mb-4 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
-        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">Back to Home</a>
-        <h1 class="display-5 fw-bold text-center">More Options</h1>
+        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Home
+        </a>
+        <h1 class="display-5 fw-bold text-center">
+            <i class="bi bi-three-dots-vertical me-2"></i>More Options
+        </h1>
         <div style="width: 100px;"></div>
     </div>
 </header>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header"><h2>Explore Data from Google Cloud Storage</h2></div>
-            <div class="card-body">
+<div class="row mb-5">
+    <div class="col-md-6 mb-4">
+        <div class="card options-card">
+            <div class="card-header option-header">
+                <div class="option-icon mx-auto">
+                    <i class="bi bi-cloud-download"></i>
+                </div>
+                <h2 class="option-title text-center">Explore Cloud Storage Data</h2>
+                <p class="mb-0 text-center text-white-50">View and analyze JSON data stored in Google Cloud Storage</p>
+            </div>
+            <div class="card-body p-4">
                 <form action="{{ url_for('storage.summarize_json') }}" method="get" id="gcsForm">
                     <div class="mb-3">
-                        <label for="bucket_name" class="form-label">Bucket Name</label>
-                        <input type="text" class="form-control" id="bucket_name" name="bucket_name" required>
+                        <label for="bucket_name" class="form-label">
+                            <i class="bi bi-bucket me-2"></i>Bucket Name
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">gs://</span>
+                            <input type="text" class="form-control" id="bucket_name" name="bucket_name" 
+                                   placeholder="your-bucket-name" required>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="source_blob_name" class="form-label">File Name</label>
-                        <input type="text" class="form-control" id="source_blob_name" name="source_blob_name" required>
+                        <label for="source_blob_name" class="form-label">
+                            <i class="bi bi-file-earmark me-2"></i>File Name
+                        </label>
+                        <input type="text" class="form-control" id="source_blob_name" name="source_blob_name" 
+                               placeholder="path/to/your/file.json" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Get Data Summary</button>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>Get Data Summary
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
     
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header"><h2>About This Project</h2></div>
-            <div class="card-body">
-                <p>This data analysis dashboard provides insights into YouTube data related to data privacy topics.</p>
-                <p>The project aims to track data privacy sentiment and trends on YouTube to help understand public awareness and concerns.</p>
-                <p>Data is collected using the YouTube API and stored in Google Cloud Storage for analysis.</p>
+    <div class="col-md-6 mb-4">
+        <div class="card options-card">
+            <div class="card-header option-header">
+                <div class="option-icon mx-auto">
+                    <i class="bi bi-info-circle"></i>
+                </div>
+                <h2 class="option-title text-center">About This Project</h2>
+                <p class="mb-0 text-center text-white-50">Learn more about Privacy Pulse and its features</p>
+            </div>
+            <div class="card-body p-4">
+                <p class="lead">Privacy Pulse is a data analysis dashboard that provides insights into YouTube data related to privacy topics.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="about-item">
+                            <i class="bi bi-graph-up about-icon"></i>
+                            <h5 class="about-title">Data Analysis</h5>
+                            <p class="text-muted">Track privacy sentiment and trends on YouTube</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="about-item">
+                            <i class="bi bi-cloud about-icon"></i>
+                            <h5 class="about-title">Cloud Storage</h5>
+                            <p class="text-muted">Store and manage data in Google Cloud</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="about-item">
+                            <i class="bi bi-shield-check about-icon"></i>
+                            <h5 class="about-title">Privacy Focus</h5>
+                            <p class="text-muted">Help understand public privacy concerns</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <a href="{{ url_for('youtube.youtube_privacy') }}" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-play-fill me-1"></i>Get Started
+                    </a>
+                    <a href="{{ url_for('admin.config') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear me-1"></i>Configure Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card options-card">
+            <div class="card-body p-4">
+                <h3 class="mb-3">
+                    <i class="bi bi-lightning-charge me-2 text-primary"></i>Quick Actions
+                </h3>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('youtube.youtube_privacy') }}" class="btn btn-outline-primary p-3">
+                                <i class="bi bi-shield-lock fs-4 d-block mb-2"></i>
+                                Privacy Analysis
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('sentiment.sentiment_analysis') }}" class="btn btn-outline-success p-3">
+                                <i class="bi bi-emoji-smile fs-4 d-block mb-2"></i>
+                                Sentiment Analysis
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('analysis.tag_analysis') }}" class="btn btn-outline-info p-3">
+                                <i class="bi bi-tags fs-4 d-block mb-2"></i>
+                                Tag Analysis
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('storage.storage_manager') }}" class="btn btn-outline-secondary p-3">
+                                <i class="bi bi-cloud-upload fs-4 d-block mb-2"></i>
+                                Storage Manager
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

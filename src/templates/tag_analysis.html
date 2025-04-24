@@ -1,34 +1,163 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container">
-    <h2 class="mb-4">Tag Analysis</h2>
+{% block title %}Tag Analysis - Privacy Pulse{% endblock %}
+
+{% block styles %}
+<style>
+    .tag-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        border: none;
+    }
     
+    .tag-header {
+        background: linear-gradient(45deg, #4361ee, #4895ef);
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+    
+    .tag-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: url('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center;
+        background-size: cover;
+        opacity: 0.1;
+        z-index: 0;
+    }
+    
+    .tag-header-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .tag-table {
+        margin-bottom: 0;
+    }
+    
+    .tag-table th {
+        background-color: rgba(67, 97, 238, 0.05);
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+    
+    .tag-frequency {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .tag-percentage {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .tag-name {
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background-color: rgba(67, 97, 238, 0.1);
+        color: var(--primary-color);
+        display: inline-block;
+    }
+    
+    .tag-row {
+        transition: all 0.2s ease;
+    }
+    
+    .tag-row:hover {
+        background-color: rgba(67, 97, 238, 0.05);
+    }
+    
+    .progress-tag {
+        height: 8px;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="pb-3 mb-4 border-bottom">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ url_for('main.homepage') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Home
+        </a>
+        <h1 class="display-5 fw-bold text-center">
+            <i class="bi bi-tags me-2"></i>Tag Analysis
+        </h1>
+        <div style="width: 100px;"></div>
+    </div>
+</header>
+
+<div class="container">
     {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
+    <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div>{{ error }}</div>
+    </div>
     {% else %}
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Top 20 Tags (from {{ total_videos }} videos)</h5>
+    <div class="card tag-card">
+        <div class="tag-header">
+            <div class="tag-header-content">
+                <h3 class="mb-2">
+                    <i class="bi bi-hash me-2"></i>Top 20 Privacy-Related Tags
+                </h3>
+                <p class="mb-0">Analysis based on {{ total_videos }} videos</p>
+            </div>
+        </div>
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table">
+                <table class="table tag-table">
                     <thead>
                         <tr>
+                            <th class="ps-4">#</th>
                             <th>Tag</th>
                             <th>Frequency</th>
                             <th>Percentage</th>
+                            <th>Distribution</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for tag, count in tags %}
-                        <tr>
-                            <td>{{ tag }}</td>
-                            <td>{{ count }}</td>
-                            <td>{{ "%.1f"|format(count/total_videos*100) }}%</td>
+                        <tr class="tag-row">
+                            <td class="ps-4">{{ loop.index }}</td>
+                            <td>
+                                <span class="tag-name">
+                                    <i class="bi bi-hash me-1"></i>{{ tag }}
+                                </span>
+                            </td>
+                            <td class="tag-frequency">{{ count }}</td>
+                            <td class="tag-percentage">{{ "%.1f"|format(count/total_videos*100) }}%</td>
+                            <td style="width: 200px;">
+                                <div class="progress progress-tag">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ count/total_videos*100 }}%" 
+                                         aria-valuenow="{{ count }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="{{ total_videos }}"></div>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+        <div class="card-footer bg-light py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-info-circle me-2 text-primary"></i>
+                    <span class="text-muted">Tags are extracted from video metadata</span>
+                </div>
+                <a href="{{ url_for('storage.storage_manager') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-cloud me-1"></i>View Source Data
+                </a>
             </div>
         </div>
     </div>
