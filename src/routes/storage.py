@@ -107,3 +107,39 @@ def storage_manager():
         return render_template('storage_manager.html', 
                               files=[], 
                               upload_error=str(e))
+    
+
+@storage_bp.route('/summarize_json', methods=['GET'])
+@login_required
+def summarize_json():
+    try:
+        bucket_name = request.args.get('bucket_name')
+        source_blob_name = request.args.get('source_blob_name')
+
+        if not bucket_name or not source_blob_name:
+            return render_template('json_summary.html',
+                                  error="Bucket name and file name are required",
+                                  summary=None,
+                                  filename=None)
+
+        storage = DataStorage(bucket_name)
+        data = storage.load_data(source_blob_name)
+
+        summary = {
+            "file_name": source_blob_name,
+            "data_type": type(data).__name__,
+            "item_count": len(data) if isinstance(data, list) else "Not a list",
+            "keys": list(data[0].keys()) if isinstance(data, list) and data else "No keys found or empty list",
+            "sample": data[0] if isinstance(data, list) and data else "No sample available"
+        }
+
+        return render_template('json_summary.html',
+                              error=None,
+                              summary=summary,
+                              filename=source_blob_name)
+    except Exception as e:
+        logger.error(f"Error in summarize_json route: {str(e)}")
+        return render_template('json_summary.html',
+                              error=f"An error occurred: {str(e)}",
+                              summary=None,
+                              filename=None)
