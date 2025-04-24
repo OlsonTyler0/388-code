@@ -101,8 +101,10 @@
             <div class="card-body">
                 <p>Upload YouTube data privacy videos to Google Cloud Storage.</p>
                 <form method="POST" id="uploadForm">
+                    <!-- Add hidden input to ensure 'upload' parameter is always sent -->
+                    <input type="hidden" name="upload" value="1">
                     <div class="d-grid gap-2">
-                        <button type="submit" name="upload" class="btn btn-success" id="uploadButton" {% if upload_error %}disabled{% endif %}>
+                        <button type="submit" class="btn btn-success" id="uploadButton" {% if upload_error %}disabled{% endif %}>
                             <i class="bi bi-cloud-upload"></i> Upload Privacy Video Data
                         </button>
                     </div>
@@ -211,10 +213,16 @@
         const loadingIndicator = document.getElementById('loadingIndicator');
         
         if (uploadForm) {
-            uploadForm.addEventListener('submit', function() {
+            uploadForm.addEventListener('submit', function(e) {
+                // Log for debugging
+                console.log("Form submission triggered");
+                
+                // Disable button and show loading indicator
                 uploadButton.disabled = true;
                 loadingIndicator.style.display = 'block';
-                uploadForm.style.display = 'none';
+                
+                // Do not hide the form itself, as it needs to be submitted
+                // Instead, just visually indicate the process is happening
             });
         }
         
