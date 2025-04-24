@@ -23,42 +23,42 @@ def storage_manager():
         upload_error = None
         files = []
 
-        # Initialize DataStorage - wrap in try/except to handle connection issues
+        # Initialize DataStorage
+        logger.info(f"Initializing DataStorage with bucket: {bucket_name}")
         try:
             data_storage = DataStorage(bucket_name)
-            # Add a verification step
-            connection_status = data_storage.verify_connection()
-            if not connection_status:
-                upload_error = "Connected to Google Cloud Storage, but failed to verify access permissions."
-            else:
-                files = data_storage.list_blobs()
+            logger.info("DataStorage initialized successfully")
+            files = data_storage.list_blobs()
+            logger.info(f"Retrieved {len(files)} files from bucket")
         except Exception as storage_error:
             logger.error(f"Error connecting to Google Cloud Storage: {str(storage_error)}")
             upload_error = f"Could not connect to Google Cloud Storage: {str(storage_error)}"
         
         if request.method == 'POST':
+            logger.info(f"POST request received with form data: {request.form}")
+            
             if 'upload' in request.form and not upload_error:
+                logger.info("Upload operation requested")
                 try:
                     # Get fresh data from YouTube API
+                    logger.info("Initializing YouTubeStats")
                     youtube_stats = YouTubeStats()
+                    logger.info("Fetching privacy videos from YouTube API")
                     current_videos = youtube_stats.search_privacy_videos(max_results=20)
                     
-                    # Add extra logging for debugging
-                    if current_videos:
-                        if isinstance(current_videos, dict) and 'error' in current_videos:
-                            logger.error(f"YouTube API error: {current_videos['error']}")
-                            flash(f"YouTube API error: {current_videos['error']}", 'danger')
-                        else:
-                            logger.info(f"Successfully retrieved {len(current_videos)} videos from YouTube API")
+                    if isinstance(current_videos, dict) and 'error' in current_videos:
+                        logger.error(f"YouTube API error: {current_videos['error']}")
+                        flash(f"YouTube API error: {current_videos['error']}", 'danger')
+                    else:
+                        if current_videos:
+                            logger.info(f"Retrieved {len(current_videos)} videos from YouTube API")
                             
                             # Create a timestamp and blob name
-                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
                             blob_name = f"privacy_videos_{timestamp}.json"
                             
-                            # Add more detailed logging
-                            logger.info(f"Attempting to save data to {blob_name}")
-                            
                             # Save to Google Cloud Storage
+                            logger.info(f"Attempting to save videos data to {blob_name}")
                             saved_filename = data_storage.save_videos_data(current_videos, blob_name)
                             
                             if saved_filename:
@@ -67,17 +67,18 @@ def storage_manager():
                                 latest_upload = saved_filename
                                 
                                 # Refresh the file list after upload
+                                logger.info("Refreshing file list")
                                 files = data_storage.list_blobs()
+                                logger.info(f"File list refreshed, found {len(files)} files")
                             else:
-                                logger.error("Upload failed. No filename was returned from save_videos_data.")
+                                logger.error("Upload failed. No filename was returned.")
                                 flash('Upload failed. No filename was returned.', 'danger')
-                    else:
-                        logger.error("No data retrieved from YouTube API")
-                        flash('No data retrieved from YouTube API', 'warning')
-                
-                except Exception as upload_error:
-                    logger.error(f"Error during upload process: {str(upload_error)}")
-                    flash(f"Upload failed: {str(upload_error)}", 'danger')
+                        else:
+                            logger.warning("No videos retrieved from YouTube API")
+                            flash('No data retrieved from YouTube API', 'warning')
+                except Exception as e:
+                    logger.error(f"Error during upload process: {str(e)}", exc_info=True)
+                    flash(f"Upload failed: {str(e)}", 'danger')
             
             elif 'download' in request.form:
                 blob_name = request.form.get('blob_name')
@@ -104,7 +105,7 @@ def storage_manager():
                               upload_error=upload_error)
 
     except Exception as e:
-        logger.error(f"Error in storage manager: {str(e)}")
+        logger.error(f"Error in storage manager: {str(e)}", exc_info=True)
         flash(f"An error occurred: {str(e)}", 'danger')
         return render_template('storage_manager.html', 
                               files=[], 
@@ -167,3 +168,49 @@ def summarize_json():
                               error=f"An error occurred: {str(e)}",
                               summary=None,
                               filename=None)
+
+@storage_bp.route('/check_storage', methods=['GET'])
+@login_required
+def check_storage():
+    try:
+        bucket_name = session.get('storage_bucket', 'itc-388-youtube-r6')
+        results = {
+            'bucket_name': bucket_name,
+            'status': 'Checking...',
+            'errors': [],
+            'file_list': []
+        }
+        
+        # Try to initialize storage
+        try:
+            data_storage = DataStorage(bucket_name)
+            results['status'] = 'DataStorage initialized'
+            
+            # Try to list files
+            try:
+                files = data_storage.list_blobs()
+                results['file_list'] = files
+                results['status'] = 'Successfully listed files'
+            except Exception as list_error:
+                results['errors'].append(f"Error listing files: {str(list_error)}")
+                
+            # Try to create a test file
+            try:
+                test_data = {'test': 'data', 'timestamp': datetime.now().isoformat()}
+                test_blob = f"test_file_{datetime.now().strftime('%Y%m%d%H%M%S')}.json"
+                saved = data_storage.save_videos_data([test_data], test_blob)
+                if saved:
+                    results['status'] = 'Successfully created test file'
+                    results['test_file'] = saved
+                else:
+                    results['errors'].append("Failed to create test file")
+            except Exception as save_error:
+                results['errors'].append(f"Error creating test file: {str(save_error)}")
+                
+        except Exception as init_error:
+            results['errors'].append(f"Error initializing DataStorage: {str(init_error)}")
+            
+        return jsonify(results)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)})

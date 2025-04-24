@@ -113,11 +113,21 @@ class DataStorage:
             # Convert data to JSON with proper formatting
             # Add better error handling for non-serializable objects
             try:
-                data_json = json.dumps(videos_data, indent=2, default=str)
+                # Convert all values that aren't serializable to strings
+                serializable_data = []
+                for video in videos_data:
+                    clean_video = {}
+                    for key, value in video.items():
+                        if isinstance(value, (str, int, float, bool, list, dict, type(None))):
+                            clean_video[key] = value
+                        else:
+                            clean_video[key] = str(value)
+                    serializable_data.append(clean_video)
+            
+                data_json = json.dumps(serializable_data, indent=2)
             except TypeError as e:
                 logger.error(f"JSON serialization error: {str(e)}")
-                # Try a more basic approach for serialization
-                data_json = json.dumps(self._sanitize_for_json(videos_data), indent=2)
+                return None
             
             # Upload the JSON string to the bucket
             blob.upload_from_string(
