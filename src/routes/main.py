@@ -1,4 +1,9 @@
-# src/routes/main.py
+# ╔═══════════════════════════════════════════════════════════╗
+#   main routes
+#       This file routes all traffic from the following routes:
+#       - /
+#       - /more
+# ╚═══════════════════════════════════════════════════════════╝
 from flask import Blueprint, render_template
 from flask_login import login_required
 

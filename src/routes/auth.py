@@ -14,7 +14,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return redirect(url_for('main.homepage'))  # Assuming homepage is in main blueprint
+            return redirect(url_for('main.homepage')) 
         return render_template('login.html', error="Invalid username or password")
     return render_template('login.html')
 
@@ -22,4 +22,4 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('auth.login'))  # Changed to use blueprint name
+    return redirect(url_for('auth.login')) 

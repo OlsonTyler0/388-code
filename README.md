@@ -12,10 +12,9 @@ This Flask application provides functionality for YouTube privacy analysis and J
     Contains the utilities for the system.
 
 
-
 ## Setup
 
-1. Create a virtual environment and activate it:
+1. Create a virtual environment, you can use one already created or:
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -30,3 +29,4 @@ export YOUTUBE_API_KEY='your_key_here'
 ```bash 
 export FLASK_SECRET_KEY='your_secret_key_here'
 ```
+

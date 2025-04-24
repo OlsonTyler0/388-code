@@ -1,4 +1,9 @@
-# src/routes/analysis.py
+# ╔═══════════════════════════════════════════════════════════╗
+#   Analysis routes
+#       This file routes all traffic from the following routes:
+#       - /tag_analysis
+# ╚═══════════════════════════════════════════════════════════╝
+
 from flask import Blueprint, render_template
 from flask_login import login_required
 from ..youtube_stats import YouTubeStats

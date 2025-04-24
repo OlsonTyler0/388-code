@@ -24,9 +24,9 @@ def storage_manager():
         files = []
 
         # Check if Google Cloud credentials are available
-        if not os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'):
-            logger.warning("Google Cloud credentials not found in environment variables")
-            upload_error = "Google Cloud credentials are not configured properly. Please check configuration."
+        #if not os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'):
+        #    logger.warning("Google Cloud credentials not found in environment variables")
+        #    upload_error = "Google Cloud credentials are not configured properly. Please check configuration."
         
         try:
             # Initialize DataStorage - wrap in try/except to handle connection issues

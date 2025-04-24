@@ -23,7 +23,7 @@ class DataStorage:
             # Allow bucket name to be overridden by session if available
             self.bucket_name = bucket_name or session.get('storage_bucket', 'itc-388-youtube-r6')
             
-            # Initialize Google Cloud Storage client
+            # Initialize Google Cloud Storage client without requiring explicit credentials file
             self.storage_client = storage.Client()
             
             # Ensure bucket exists
