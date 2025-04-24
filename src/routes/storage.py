@@ -46,36 +46,48 @@ def storage_manager():
                     logger.info("Fetching privacy videos from YouTube API")
                     current_videos = youtube_stats.search_privacy_videos(max_results=20)
                     
-                    if isinstance(current_videos, dict) and 'error' in current_videos:
-                        logger.error(f"YouTube API error: {current_videos['error']}")
-                        flash(f"YouTube API error: {current_videos['error']}", 'danger')
+                    # Add detailed debugging for the response
+                    if current_videos:
+                        logger.info(f"Type of current_videos: {type(current_videos)}")
+                        if isinstance(current_videos, list):
+                            logger.info(f"Number of videos retrieved: {len(current_videos)}")
+                            if current_videos:
+                                logger.info(f"First video keys: {list(current_videos[0].keys())}")
+                        elif isinstance(current_videos, dict):
+                            logger.info(f"Dictionary keys: {list(current_videos.keys())}")
+                            if 'error' in current_videos:
+                                logger.error(f"YouTube API error: {current_videos['error']}")
+                                flash(f"YouTube API error: {current_videos['error']}", 'danger')
                     else:
-                        if current_videos:
-                            logger.info(f"Retrieved {len(current_videos)} videos from YouTube API")
+                        logger.warning("current_videos is None or empty")
+                    
+                    # Now attempt to process and save the data
+                    if current_videos and isinstance(current_videos, list) and not ('error' in current_videos if isinstance(current_videos, dict) else False):
+                        logger.info(f"Retrieved {len(current_videos)} videos from YouTube API")
+                        
+                        # Create a timestamp and blob name
+                        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+                        blob_name = f"privacy_videos_{timestamp}.json"
+                        
+                        # Save to Google Cloud Storage
+                        logger.info(f"Attempting to save videos data to {blob_name}")
+                        saved_filename = data_storage.save_videos_data(current_videos, blob_name)
+                        
+                        if saved_filename:
+                            logger.info(f"Successfully saved data to {saved_filename}")
+                            flash(f'Data successfully uploaded as {saved_filename}!', 'success')
+                            latest_upload = saved_filename
                             
-                            # Create a timestamp and blob name
-                            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-                            blob_name = f"privacy_videos_{timestamp}.json"
-                            
-                            # Save to Google Cloud Storage
-                            logger.info(f"Attempting to save videos data to {blob_name}")
-                            saved_filename = data_storage.save_videos_data(current_videos, blob_name)
-                            
-                            if saved_filename:
-                                logger.info(f"Successfully saved data to {saved_filename}")
-                                flash(f'Data successfully uploaded as {saved_filename}!', 'success')
-                                latest_upload = saved_filename
-                                
-                                # Refresh the file list after upload
-                                logger.info("Refreshing file list")
-                                files = data_storage.list_blobs()
-                                logger.info(f"File list refreshed, found {len(files)} files")
-                            else:
-                                logger.error("Upload failed. No filename was returned.")
-                                flash('Upload failed. No filename was returned.', 'danger')
+                            # Refresh the file list after upload
+                            logger.info("Refreshing file list")
+                            files = data_storage.list_blobs()
+                            logger.info(f"File list refreshed, found {len(files)} files")
                         else:
-                            logger.warning("No videos retrieved from YouTube API")
-                            flash('No data retrieved from YouTube API', 'warning')
+                            logger.error("Upload failed. No filename was returned.")
+                            flash('Upload failed. No filename was returned.', 'danger')
+                    else:
+                        logger.warning("No videos retrieved from YouTube API or received error")
+                        flash('No data retrieved from YouTube API or received error', 'warning')
                 except Exception as e:
                     logger.error(f"Error during upload process: {str(e)}", exc_info=True)
                     flash(f"Upload failed: {str(e)}", 'danger')
@@ -214,3 +226,30 @@ def check_storage():
         
     except Exception as e:
         return jsonify({'error': str(e)})
+
+@storage_bp.route('/test_youtube_api', methods=['GET'])
+@login_required
+def test_youtube_api():
+    try:
+        logger.info("Testing YouTube API connection")
+        youtube_stats = YouTubeStats()
+        logger.info("YouTubeStats initialized, attempting to search for videos")
+        videos = youtube_stats.search_privacy_videos(max_results=5)
+        logger.info(f"Received response from YouTube API: type={type(videos)}")
+        
+        result = {
+            'success': not (isinstance(videos, dict) and 'error' in videos),
+            'videos_count': len(videos) if isinstance(videos, list) else 0,
+            'data_type': type(videos).__name__,
+            'error': videos.get('error') if isinstance(videos, dict) and 'error' in videos else None,
+            'sample': videos[0] if isinstance(videos, list) and videos else videos
+        }
+        
+        logger.info(f"YouTube API test result: {result['success']}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error testing YouTube API: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
