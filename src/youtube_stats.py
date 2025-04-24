@@ -60,6 +60,8 @@ class YouTubeStats:
             logger.error(f"An unexpected error occurred: {str(e)}")
             return {'error': f"An unexpected error occurred: {str(e)}"}
     
+    # Modified search_privacy_videos method for YouTubeStats class
+
     def search_privacy_videos(self, max_results=20):
         """
         Search for videos related to data privacy
@@ -85,12 +87,16 @@ class YouTubeStats:
             if not video_ids:
                 return []
             
+            # Make sure to include the 'snippet' part which contains tags
             videos_response = self.youtube.videos().list(
                 part='snippet,contentDetails,statistics',
                 id=','.join(video_ids)
             ).execute()
             
             for video in videos_response.get('items', []):
+                # Extract tags from the snippet if they exist
+                tags = video['snippet'].get('tags', [])
+                
                 video_data = {
                     'id': video['id'],
                     'title': video['snippet']['title'],
@@ -100,7 +106,8 @@ class YouTubeStats:
                     'comments': video['statistics'].get('commentCount', '0'),
                     'description': video['snippet']['description'],
                     'thumbnail': video['snippet']['thumbnails']['medium']['url'],
-                    'url': f"https://www.youtube.com/watch?v={video['id']}"
+                    'url': f"https://www.youtube.com/watch?v={video['id']}",
+                    'tags': tags  # Add the tags to the video data
                 }
                 videos_data.append(video_data)
                 

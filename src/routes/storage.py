@@ -125,13 +125,35 @@ def summarize_json():
         storage = DataStorage(bucket_name)
         data = storage.load_data(source_blob_name)
 
-        summary = {
-            "file_name": source_blob_name,
-            "data_type": type(data).__name__,
-            "item_count": len(data) if isinstance(data, list) else "Not a list",
-            "keys": list(data[0].keys()) if isinstance(data, list) and data else "No keys found or empty list",
-            "sample": data[0] if isinstance(data, list) and data else "No sample available"
-        }
+        # Create a summary based on the data type
+        if data is None:
+            summary = {
+                "data_type": "None",
+                "item_count": 0,
+                "keys": "No data found",
+                "sample": "No data available"
+            }
+        elif isinstance(data, list):
+            summary = {
+                "data_type": "List",
+                "item_count": len(data),
+                "keys": list(data[0].keys()) if data and isinstance(data[0], dict) else "Not dictionaries or empty list",
+                "sample": data[0] if data else "Empty list"
+            }
+        elif isinstance(data, dict):
+            summary = {
+                "data_type": "Dictionary",
+                "item_count": 1,
+                "keys": list(data.keys()),
+                "sample": {k: data[k] for k in list(data.keys())[:5]} if data else "Empty dictionary"
+            }
+        else:
+            summary = {
+                "data_type": type(data).__name__,
+                "item_count": "Not applicable",
+                "keys": "Not a list or dictionary",
+                "sample": str(data)[:200] + "..." if len(str(data)) > 200 else str(data)
+            }
 
         return render_template('json_summary.html',
                               error=None,
