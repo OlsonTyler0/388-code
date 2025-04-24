@@ -23,15 +23,15 @@ def storage_manager():
         upload_error = None
         files = []
 
-        # Check if Google Cloud credentials are available
-        #if not os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'):
-        #    logger.warning("Google Cloud credentials not found in environment variables")
-        #    upload_error = "Google Cloud credentials are not configured properly. Please check configuration."
-        
+        # Initialize DataStorage - wrap in try/except to handle connection issues
         try:
-            # Initialize DataStorage - wrap in try/except to handle connection issues
             data_storage = DataStorage(bucket_name)
-            files = data_storage.list_blobs()
+            # Add a verification step
+            connection_status = data_storage.verify_connection()
+            if not connection_status:
+                upload_error = "Connected to Google Cloud Storage, but failed to verify access permissions."
+            else:
+                files = data_storage.list_blobs()
         except Exception as storage_error:
             logger.error(f"Error connecting to Google Cloud Storage: {str(storage_error)}")
             upload_error = f"Could not connect to Google Cloud Storage: {str(storage_error)}"
@@ -43,35 +43,37 @@ def storage_manager():
                     youtube_stats = YouTubeStats()
                     current_videos = youtube_stats.search_privacy_videos(max_results=20)
                     
-                    if not current_videos:
-                        flash('No data retrieved from YouTube API', 'warning')
-                        return render_template('storage_manager.html', 
-                                              files=files, 
-                                              latest_upload=None,
-                                              upload_error=upload_error)
-                                              
-                    if isinstance(current_videos, dict) and 'error' in current_videos:
-                        flash(f"YouTube API error: {current_videos['error']}", 'danger')
-                        return render_template('storage_manager.html', 
-                                              files=files, 
-                                              latest_upload=None,
-                                              upload_error=upload_error)
-                    
-                    # Create a timestamp and blob name
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    blob_name = f"privacy_videos_{timestamp}.json"
-                    
-                    # Save to Google Cloud Storage
-                    saved_filename = data_storage.save_videos_data(current_videos, blob_name)
-                    
-                    if saved_filename:
-                        flash(f'Data successfully uploaded as {saved_filename}!', 'success')
-                        latest_upload = saved_filename
-                        
-                        # Refresh the file list after upload
-                        files = data_storage.list_blobs()
+                    # Add extra logging for debugging
+                    if current_videos:
+                        if isinstance(current_videos, dict) and 'error' in current_videos:
+                            logger.error(f"YouTube API error: {current_videos['error']}")
+                            flash(f"YouTube API error: {current_videos['error']}", 'danger')
+                        else:
+                            logger.info(f"Successfully retrieved {len(current_videos)} videos from YouTube API")
+                            
+                            # Create a timestamp and blob name
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            blob_name = f"privacy_videos_{timestamp}.json"
+                            
+                            # Add more detailed logging
+                            logger.info(f"Attempting to save data to {blob_name}")
+                            
+                            # Save to Google Cloud Storage
+                            saved_filename = data_storage.save_videos_data(current_videos, blob_name)
+                            
+                            if saved_filename:
+                                logger.info(f"Successfully saved data to {saved_filename}")
+                                flash(f'Data successfully uploaded as {saved_filename}!', 'success')
+                                latest_upload = saved_filename
+                                
+                                # Refresh the file list after upload
+                                files = data_storage.list_blobs()
+                            else:
+                                logger.error("Upload failed. No filename was returned from save_videos_data.")
+                                flash('Upload failed. No filename was returned.', 'danger')
                     else:
-                        flash('Upload failed. No filename was returned.', 'danger')
+                        logger.error("No data retrieved from YouTube API")
+                        flash('No data retrieved from YouTube API', 'warning')
                 
                 except Exception as upload_error:
                     logger.error(f"Error during upload process: {str(upload_error)}")

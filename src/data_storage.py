@@ -24,11 +24,9 @@ class DataStorage:
             # Allow bucket name to be overridden by session if available
             self.bucket_name = bucket_name or session.get('storage_bucket', 'itc-388-youtube-r6')
             
-            # Verify Google Cloud credentials are available
-            if not os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'):
-                logger.warning("GOOGLE_APPLICATION_CREDENTIALS environment variable not set")
-                
-            # Initialize Google Cloud Storage client
+            # Initialize Google Cloud Storage client - remove the credentials check
+            # In Cloud Run, we don't need to explicitly set GOOGLE_APPLICATION_CREDENTIALS
+            # as the credentials are automatically available
             self.storage_client = storage.Client()
             
             # Ensure bucket exists
@@ -58,14 +56,23 @@ class DataStorage:
     
     def verify_connection(self):
         """
-        Verify connection to Google Cloud Storage
+        Verify connection to Google Cloud Storage and bucket permissions
         
         Returns:
             Boolean indicating if connection is successful
         """
         try:
-            # Simple operation to check connection
+            # Check if we can list buckets (general access)
             _ = list(self.storage_client.list_buckets(max_results=1))
+            
+            # Check if we can list blobs in the specific bucket (specific access)
+            _ = list(self.bucket.list_blobs(max_results=1))
+            
+            # Try to create a temporary test blob (write access)
+            test_blob = self.bucket.blob('_test_permissions')
+            test_blob.upload_from_string('test', content_type='text/plain')
+            test_blob.delete()
+            
             return True
         except Exception as e:
             logger.error(f"Connection verification failed: {str(e)}")
