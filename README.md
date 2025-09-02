@@ -1,6 +1,8 @@
 # 388 Code
 
-This Flask application provides functionality for YouTube privacy analysis and JSON data management using Google Cloud Services.
+This Flask application provides functionality for YouTube privacy analysis and JSON data management using Google Cloud Services. 
+
+This was created as a college project and will not be actively maintained.
 
 ## The layout of this code
 
